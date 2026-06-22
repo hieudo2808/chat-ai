@@ -1,0 +1,93 @@
+.drop-zone {
+    border: 2px dashed #3f3f46;
+    border-radius: 8px;
+    padding: 3rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #18181b;
+    margin-bottom: 1.5rem;
+}
+
+.drop-zone:hover, .drop-zone.dragging {
+    border-color: #0ea5e9;
+    background-color: #0c4a6e;
+}
+
+.drop-zone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.drop-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.supported-formats {
+    font-size: 0.85rem;
+    color: #a1a1aa;
+}
+
+.click-to-browse {
+    font-size: 0.85rem;
+    color: #0ea5e9;
+    margin-top: 0.5rem;
+}
+
+.import-error {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.import-preview {
+    background-color: #27272a;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #3f3f46;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #3f3f46;
+}
+
+.preview-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #f4f4f5;
+}
+
+.preview-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.preview-details p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #d4d4d8;
+}
+
+.preview-details strong {
+    color: #f4f4f5;
+    margin-right: 0.5rem;
+}
+
+.empty-text {
+    color: #71717a;
+    font-style: italic;
+}

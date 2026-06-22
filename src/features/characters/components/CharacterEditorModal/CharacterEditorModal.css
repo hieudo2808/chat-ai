@@ -1,0 +1,4 @@
+/* Reuse form styles from Modal and SettingsModal, but can add custom ones here if needed */
+.avatar-field {
+    max-width: 140px;
+}

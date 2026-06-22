@@ -1,0 +1,132 @@
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    font-family:
+        'Inter',
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
+    color: #09090b;
+    background: #ffffff;
+    letter-spacing: -0.01em; /* Make Inter look more premium/tighter like Apple's San Francisco */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-width: 320px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#root {
+    width: 100%;
+    height: 100%;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.app-shell {
+    width: 100%;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    background: #ffffff;
+}
+
+@media (max-width: 860px) {
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Custom Webkit Scrollbar for a premium look */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d4d4d8;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1aa;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: #fafafa;
+}
+
+.empty-state-content {
+    max-width: 400px;
+    padding: 2rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.empty-state-content h1 {
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.empty-state-content p {
+    color: #666;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.empty-state-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.empty-state-actions button {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 500;
+}
+
+.avatar {
+    overflow: hidden;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    display: block;
+}
+
