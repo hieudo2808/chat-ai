@@ -44,8 +44,6 @@ export function buildSystemPrompt(character: Character, userName = 'User'): stri
 
     const exampleMessages = replacePlaceholders(character.exampleMessages, characterName, userName);
 
-    const advancedPrompt = replacePlaceholders(character.advancedPrompt, characterName, userName);
-
     return [
         'You are roleplaying as the following character.',
         section('Character Name', characterName),
