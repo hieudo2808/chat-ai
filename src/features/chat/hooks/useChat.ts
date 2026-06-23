@@ -79,6 +79,7 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                 character: selectedCharacter,
                 history,
                 userMessage: '', // userMessage is already in history, no need to append again
+                settings,
             });
 
             const assistantMessage: Message = {

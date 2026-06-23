@@ -20,7 +20,13 @@ describe('normalizeCharacter', () => {
                 scenario: 'A scenario',
                 first_mes: 'Hello there',
                 mes_example: 'User: hi\nChar: hi',
-                system_prompt: 'System rule'
+                system_prompt: 'System rule',
+                extensions: {
+                    depth_prompt: {
+                        prompt: 'System rule',
+                        depth: 4
+                    }
+                }
             }
         };
 
@@ -34,6 +40,7 @@ describe('normalizeCharacter', () => {
         expect(result.firstMessage).toBe('Hello there');
         expect(result.exampleMessages).toBe('User: hi\nChar: hi');
         expect(result.advancedPrompt).toBe('System rule');
+        expect(result.advancedPromptDepth).toBe(4);
         expect(result.createdAt).toBe(1700000000000);
         expect(result.updatedAt).toBe(1700000000000);
     });
@@ -61,5 +68,6 @@ describe('normalizeCharacter', () => {
         expect(result.name).toBe('Unnamed Character');
         expect(result.avatar).toBe('👤');
         expect(result.description).toBe('');
+        expect(result.advancedPromptDepth).toBe(0);
     });
 });

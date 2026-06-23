@@ -8,6 +8,7 @@ export interface Character {
     firstMessage: string;
     exampleMessages?: string;
     advancedPrompt?: string;
+    advancedPromptDepth?: number;
     createdAt?: number;
     updatedAt?: number;
 }
@@ -27,5 +28,6 @@ export interface Settings {
     modelName: string;
     temperature: number;
     maxTokens: number;
+    globalJailbreak?: string;
     updatedAt: number;
 }

@@ -25,6 +25,10 @@ export function normalizeCharacter(raw: any): Character {
 
         advancedPrompt: data.system_prompt || data.advancedPrompt || data.extensions?.depth_prompt?.prompt || '',
 
+        advancedPromptDepth: typeof data.extensions?.depth_prompt?.depth === 'number'
+            ? data.extensions.depth_prompt.depth
+            : 0,
+
         createdAt: now,
         updatedAt: now,
     };

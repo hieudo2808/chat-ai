@@ -7,17 +7,18 @@ export async function getSettings(): Promise<Settings> {
     const db = await dbPromise;
     const settings = await db.get('settings', SETTINGS_ID);
 
-    return (
-        settings || {
-            id: SETTINGS_ID,
-            apiKey: '',
-            baseUrl: 'https://openrouter.ai/api/v1',
-            modelName: '',
-            temperature: 0.8,
-            maxTokens: 1024,
-            updatedAt: Date.now(),
-        }
-    );
+    const defaults: Settings = {
+        id: SETTINGS_ID,
+        apiKey: '',
+        baseUrl: 'https://openrouter.ai/api/v1',
+        modelName: '',
+        temperature: 0.8,
+        maxTokens: 1024,
+        globalJailbreak: '',
+        updatedAt: Date.now(),
+    };
+
+    return settings ? { ...defaults, ...settings } : defaults;
 }
 
 export async function saveSettings(settings: Settings): Promise<Settings> {

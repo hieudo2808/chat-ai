@@ -6,6 +6,7 @@ describe('SettingsService', () => {
         const settings = await getSettings();
         expect(settings.id).toBe('ai_settings');
         expect(settings.baseUrl).toBe('https://openrouter.ai/api/v1');
+        expect(settings.globalJailbreak).toBe('');
     });
 
     it('saves and retrieves custom settings', async () => {

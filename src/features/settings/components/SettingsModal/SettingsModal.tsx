@@ -93,6 +93,15 @@ export function SettingsModal({ settings, onChange, onClose, onSave }: SettingsM
                 />
             </div>
 
+            <div className="form-group">
+                <label>Global Jailbreak Prompt (Post-History Instructions)</label>
+                <textarea
+                    placeholder="E.g. Always speak in Vietnamese, stay in character..."
+                    value={settings.globalJailbreak || ''}
+                    onChange={(e) => updateField('globalJailbreak', e.target.value)}
+                />
+            </div>
+
             <div className="form-row">
                 <div className="form-group">
                     <label>Temperature</label>

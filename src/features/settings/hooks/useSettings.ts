@@ -9,6 +9,7 @@ const defaultSettings: Settings = {
     modelName: 'gpt-4o-mini',
     temperature: 0.8,
     maxTokens: 1024,
+    globalJailbreak: '',
     updatedAt: Date.now(),
 };
 

@@ -18,7 +18,7 @@ class MockFile {
 
 describe('characterImportService', () => {
     it('throws error for unsupported extension', async () => {
-        await expect(importCharacterCard({ name: 'test.txt' } as unknown as File)).rejects.toThrow('Chỉ hỗ trợ file .json và .png');
+        await expect(importCharacterCard({ name: 'test.txt' } as unknown as File)).rejects.toThrow('Chỉ hỗ trợ file .json hoặc .png');
     });
 
     it('parses json file successfully', async () => {

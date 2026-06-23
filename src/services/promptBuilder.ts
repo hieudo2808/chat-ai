@@ -1,4 +1,4 @@
-import type { Character, Message } from '../types';
+import type { Character, Message, Settings } from '../types';
 
 interface InjectedPrompt {
     role: 'system' | 'user' | 'assistant';
@@ -85,11 +85,13 @@ export function buildChatMessages({
     history,
     userMessage,
     userName = 'User',
+    settings,
 }: {
     character: Character;
     history: Message[];
     userMessage: string;
     userName?: string;
+    settings?: Settings;
 }): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
     if (!character) {
         throw new Error('Character is required to build prompt');
@@ -120,6 +122,14 @@ export function buildChatMessages({
         injectedPrompts.push({
             role: 'system',
             content: replacePlaceholders(character.advancedPrompt, character.name || 'Unnamed Character', userName),
+            depth: typeof character.advancedPromptDepth === 'number' ? character.advancedPromptDepth : 0,
+        });
+    }
+
+    if (settings?.globalJailbreak) {
+        injectedPrompts.push({
+            role: 'system',
+            content: replacePlaceholders(settings.globalJailbreak, character.name || 'Unnamed Character', userName),
             depth: 0,
         });
     }
@@ -140,6 +150,13 @@ export function buildChatMessages({
             role: 'user',
             content: `${userMessage.trim()}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages.]`,
         });
+    } else {
+        for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].role === 'user') {
+                messages[i].content = `${messages[i].content}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages.]`;
+                break;
+            }
+        }
     }
 
     return messages;

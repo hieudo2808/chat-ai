@@ -95,13 +95,26 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
                 />
             </div>
 
-            <div className="form-group">
-                <label>Advanced Prompt</label>
-                <textarea
-                    placeholder="System prompts or internal monologue rules..."
-                    value={form.advancedPrompt || ''}
-                    onChange={(e) => updateField('advancedPrompt', e.target.value)}
-                />
+            <div className="form-row" style={{ gridTemplateColumns: '4fr 1fr', alignItems: 'end' }}>
+                <div className="form-group">
+                    <label>Advanced Prompt</label>
+                    <textarea
+                        placeholder="Monologue rules, instructions..."
+                        value={form.advancedPrompt || ''}
+                        onChange={(e) => updateField('advancedPrompt', e.target.value)}
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Depth</label>
+                    <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        value={form.advancedPromptDepth ?? 0}
+                        onChange={(e) => setForm({ ...form, advancedPromptDepth: parseInt(e.target.value) || 0 })}
+                        style={{ height: '92px', textAlign: 'center' }}
+                    />
+                </div>
             </div>
 
             <div className="modal-actions">

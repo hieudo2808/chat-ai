@@ -69,6 +69,25 @@ describe('PromptBuilder', () => {
             expect(apiMessages[4].content).toContain('[System note:');
         });
 
+        it('appends system note to the last user message in history if userMessage is empty', () => {
+            const history: Message[] = [
+                { id: '1', characterId: 'char_1', role: 'user', content: 'Greeting from user' },
+                { id: '2', characterId: 'char_1', role: 'assistant', content: 'Reply from character' },
+                { id: '3', characterId: 'char_1', role: 'user', content: 'Last user message' },
+            ];
+
+            const apiMessages = buildChatMessages({
+                character: dummyCharacter,
+                history,
+                userMessage: ''
+            });
+
+            expect(apiMessages.length).toBe(5);
+            expect(apiMessages[3].role).toBe('user');
+            expect(apiMessages[3].content).toContain('Last user message');
+            expect(apiMessages[3].content).toContain('[System note:');
+        });
+
         it('slices history to max 10 messages', () => {
             const history: Message[] = [];
             for (let i = 0; i < 25; i++) {
@@ -106,9 +125,65 @@ describe('PromptBuilder', () => {
 
             expect(apiMessages.length).toBe(3); // system + 1 valid history + 1 advanced prompt
             expect(apiMessages[1].role).toBe('user');
-            expect(apiMessages[1].content).toBe('Valid');
+            expect(apiMessages[1].content).toContain('Valid');
+            expect(apiMessages[1].content).toContain('[System note:');
             expect(apiMessages[2].role).toBe('system');
             expect(apiMessages[2].content).toBe('Always speak in riddles.');
+        });
+
+        it('respects character advancedPromptDepth', () => {
+            const history: Message[] = [
+                { id: '1', characterId: 'char_1', role: 'user', content: 'Msg 1' },
+                { id: '2', characterId: 'char_1', role: 'assistant', content: 'Msg 2' },
+                { id: '3', characterId: 'char_1', role: 'user', content: 'Msg 3' },
+            ];
+
+            const characterWithCustomDepth: Character = {
+                ...dummyCharacter,
+                advancedPrompt: 'Speak in code.',
+                advancedPromptDepth: 2,
+            };
+
+            const apiMessages = buildChatMessages({
+                character: characterWithCustomDepth,
+                history,
+                userMessage: ''
+            });
+
+            expect(apiMessages.length).toBe(5);
+            expect(apiMessages[2].role).toBe('system');
+            expect(apiMessages[2].content).toBe('Speak in code.');
+            expect(apiMessages[3].content).toContain('Msg 2');
+            expect(apiMessages[4].content).toContain('Msg 3');
+        });
+
+        it('injects globalJailbreak at depth 0 when present in settings', () => {
+            const history: Message[] = [
+                { id: '1', characterId: 'char_1', role: 'user', content: 'Msg 1' },
+            ];
+
+            const settings = {
+                id: 'ai_settings',
+                apiKey: 'sk-test',
+                baseUrl: 'http://test',
+                modelName: 'test-model',
+                temperature: 0.8,
+                maxTokens: 100,
+                globalJailbreak: 'ALWAYS format replies as markdown.',
+                updatedAt: Date.now(),
+            };
+
+            const apiMessages = buildChatMessages({
+                character: dummyCharacter,
+                history,
+                userMessage: '',
+                settings
+            });
+
+            expect(apiMessages.length).toBe(4);
+            const systemPrompts = apiMessages.filter(m => m.role === 'system');
+            expect(systemPrompts.length).toBe(3);
+            expect(apiMessages.some(m => m.role === 'system' && m.content === 'ALWAYS format replies as markdown.')).toBe(true);
         });
     });
 });
