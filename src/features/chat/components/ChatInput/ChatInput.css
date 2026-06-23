@@ -21,6 +21,12 @@
     outline: none;
     line-height: 20px;
     transition: all 0.15s ease;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.chat-input-area textarea::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .chat-input-area textarea:focus {

@@ -15,7 +15,7 @@ export function ChatInput({ input, isStreaming, onChange, onSend, onStop }: Chat
     useEffect(() => {
         const el = textareaRef.current;
         if (!el) return;
-        el.style.height = '44px';
+        el.style.height = 'auto';
         const scrollHeight = el.scrollHeight;
         el.style.height = Math.min(scrollHeight, 160) + 'px';
     }, [input]);

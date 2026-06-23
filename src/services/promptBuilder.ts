@@ -148,12 +148,12 @@ export function buildChatMessages({
     if (userMessage.trim()) {
         messages.push({
             role: 'user',
-            content: `${userMessage.trim()}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages.]`,
+            content: `${userMessage.trim()}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages. Stay in character and follow the formatting: dialogue in "quotes", actions/thoughts/narration in *asterisks*. Do not use speaker labels or write plain text without formatting.]`,
         });
     } else {
         for (let i = messages.length - 1; i >= 0; i--) {
             if (messages[i].role === 'user') {
-                messages[i].content = `${messages[i].content}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages.]`;
+                messages[i].content = `${messages[i].content}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages. Stay in character and follow the formatting: dialogue in "quotes", actions/thoughts/narration in *asterisks*. Do not use speaker labels or write plain text without formatting.]`;
                 break;
             }
         }
