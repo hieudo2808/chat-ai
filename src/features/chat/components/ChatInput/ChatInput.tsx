@@ -31,7 +31,7 @@ export function ChatInput({ input, isStreaming, onChange, onSend, onStop }: Chat
         <footer className="chat-input-area">
             <textarea
                 ref={textareaRef}
-                placeholder="Type your message..."
+                placeholder="Nhập tin nhắn..."
                 value={input}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}

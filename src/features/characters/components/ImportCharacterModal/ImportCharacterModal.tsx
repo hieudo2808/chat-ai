@@ -49,7 +49,7 @@ export function ImportCharacterModal({ onClose, onImport }: ImportCharacterModal
     };
 
     return (
-        <Modal title="Import Character Card" onClose={onClose}>
+        <Modal title="Nhập thẻ nhân vật (Import Card)" onClose={onClose}>
             <div 
                 className={`drop-zone ${isDragging ? 'dragging' : ''}`}
                 onDragOver={handleDragOver}
@@ -66,9 +66,9 @@ export function ImportCharacterModal({ onClose, onImport }: ImportCharacterModal
                 />
                 <div className="drop-zone-content">
                     <span className="drop-icon">📥</span>
-                    <strong>Drag & drop Character Card here</strong>
-                    <span className="supported-formats">Supported formats: .json, .png</span>
-                    <span className="click-to-browse">or click to browse</span>
+                    <strong>Kéo & thả file Character Card (.json hoặc .png) vào đây</strong>
+                    <span className="supported-formats">Định dạng hỗ trợ: .json, .png</span>
+                    <span className="click-to-browse">hoặc click để chọn file từ máy tính</span>
                 </div>
             </div>
 
@@ -82,21 +82,21 @@ export function ImportCharacterModal({ onClose, onImport }: ImportCharacterModal
                     </div>
                     
                     <div className="preview-details">
-                        <p><strong>Description:</strong> {preview.description || <span className="empty-text">N/A</span>}</p>
-                        <p><strong>Personality:</strong> {preview.personality || <span className="empty-text">N/A</span>}</p>
-                        <p><strong>Scenario:</strong> {preview.scenario || <span className="empty-text">N/A</span>}</p>
-                        <p><strong>First Message:</strong> {preview.firstMessage || <span className="empty-text">N/A</span>}</p>
+                        <p><strong>Mô tả ngắn:</strong> {preview.description || <span className="empty-text">Không có</span>}</p>
+                        <p><strong>Tính cách:</strong> {preview.personality || <span className="empty-text">Không có</span>}</p>
+                        <p><strong>Bối cảnh:</strong> {preview.scenario || <span className="empty-text">Không có</span>}</p>
+                        <p><strong>Lời chào đầu:</strong> {preview.firstMessage || <span className="empty-text">Không có</span>}</p>
                     </div>
                 </div>
             )}
 
             <div className="modal-actions">
-                <button className="secondary" onClick={onClose}>Cancel</button>
+                <button className="secondary" onClick={onClose}>Hủy</button>
                 <button 
                     disabled={!preview} 
                     onClick={() => preview && onImport(preview)}
                 >
-                    Import Character
+                    Nhập nhân vật
                 </button>
             </div>
         </Modal>

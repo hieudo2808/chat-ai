@@ -31,18 +31,18 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
     };
 
     return (
-        <Modal title={character ? 'Edit Character' : 'New Character'} onClose={onClose}>
+        <Modal title={character ? 'Chỉnh sửa nhân vật' : 'Tạo nhân vật mới'} onClose={onClose}>
             <div className="form-row">
                 <div className="form-group avatar-field">
-                    <label>Avatar</label>
+                    <label>Emoji/Ảnh đại diện (Avatar)</label>
                     <input type="text" value={form.avatar || ''} onChange={(e) => updateField('avatar', e.target.value)} />
                 </div>
 
                 <div className="form-group">
-                    <label>Name</label>
+                    <label>Tên nhân vật</label>
                     <input
                         type="text"
-                        placeholder="Character name"
+                        placeholder="Nhập tên nhân vật..."
                         value={form.name || ''}
                         onChange={(e) => updateField('name', e.target.value)}
                     />
@@ -50,46 +50,46 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
             </div>
 
             <div className="form-group">
-                <label>Description</label>
+                <label>Mô tả ngắn</label>
                 <input
                     type="text"
-                    placeholder="Short description"
+                    placeholder="Nhập mô tả ngắn về nhân vật..."
                     value={form.description || ''}
                     onChange={(e) => updateField('description', e.target.value)}
                 />
             </div>
 
             <div className="form-group">
-                <label>Personality</label>
+                <label>Tính cách (Personality)</label>
                 <textarea
-                    placeholder="Personality, speaking style, behavior..."
+                    placeholder="Ví dụ: Rụt rè, dễ bối rối, thích vẽ tranh mèo..."
                     value={form.personality || ''}
                     onChange={(e) => updateField('personality', e.target.value)}
                 />
             </div>
 
             <div className="form-group">
-                <label>Scenario</label>
+                <label>Bối cảnh (Scenario)</label>
                 <textarea
-                    placeholder="World, situation, relationship with user..."
+                    placeholder="Ví dụ: Gặp gỡ trong phòng học mỹ thuật vắng người..."
                     value={form.scenario || ''}
                     onChange={(e) => updateField('scenario', e.target.value)}
                 />
             </div>
 
             <div className="form-group">
-                <label>First Message</label>
+                <label>Lời chào đầu tiên (First Message)</label>
                 <textarea
-                    placeholder="The first message from this character..."
+                    placeholder="Lời thoại đầu tiên của nhân vật khi bắt đầu cuộc trò chuyện..."
                     value={form.firstMessage || ''}
                     onChange={(e) => updateField('firstMessage', e.target.value)}
                 />
             </div>
 
             <div className="form-group">
-                <label>Example Messages</label>
+                <label>Đoạn chat mẫu (Example Messages)</label>
                 <textarea
-                    placeholder="Example conversations... (e.g., User: Hi\nChar: Hello)"
+                    placeholder="Các mẫu hội thoại mẫu để model bắt chước. Ví dụ:&#10;User: Chào cậu&#10;Char: *ngước nhìn lên, bối rối* X-Xin chào..."
                     value={form.exampleMessages || ''}
                     onChange={(e) => updateField('exampleMessages', e.target.value)}
                 />
@@ -97,15 +97,15 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
 
             <div className="form-row" style={{ gridTemplateColumns: '4fr 1fr', alignItems: 'end' }}>
                 <div className="form-group">
-                    <label>Advanced Prompt</label>
+                    <label>System Prompt nâng cao (Advanced Prompt)</label>
                     <textarea
-                        placeholder="Monologue rules, instructions..."
+                        placeholder="Các chỉ thị hệ thống riêng cho nhân vật này..."
                         value={form.advancedPrompt || ''}
                         onChange={(e) => updateField('advancedPrompt', e.target.value)}
                     />
                 </div>
                 <div className="form-group">
-                    <label>Depth</label>
+                    <label>Độ sâu (Depth)</label>
                     <input
                         type="number"
                         min="0"
@@ -119,7 +119,7 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
 
             <div className="modal-actions">
                 <button className="secondary" onClick={onClose}>
-                    Cancel
+                    Hủy
                 </button>
                 <button
                     onClick={() => {
@@ -134,7 +134,7 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
                         } as Character);
                     }}
                 >
-                    Save Character
+                    Lưu nhân vật
                 </button>
             </div>
         </Modal>

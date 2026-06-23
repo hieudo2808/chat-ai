@@ -113,9 +113,11 @@ export default function App() {
             {isSettingsOpen && (
                 <SettingsModal
                     settings={settings}
-                    onChange={setSettings}
                     onClose={() => setIsSettingsOpen(false)}
-                    onSave={() => setIsSettingsOpen(false)}
+                    onSave={(newSettings) => {
+                        setSettings(newSettings);
+                        setIsSettingsOpen(false);
+                    }}
                 />
             )}
 

@@ -45,9 +45,9 @@ export function ChatPanel({
                 </div>
 
                 <div className="chat-header-actions">
-                    <button onClick={onEditCharacter}>Edit</button>
+                    <button onClick={onEditCharacter}>Chỉnh sửa</button>
                     <button className="danger" onClick={onDeleteCharacter}>
-                        Delete
+                        Xóa
                     </button>
                 </div>
             </header>
@@ -59,7 +59,7 @@ export function ChatPanel({
 
                 {isStreaming && (
                     <div className="typing-indicator">
-                        Typing<span>.</span>
+                        Đang gõ<span>.</span>
                         <span>.</span>
                         <span>.</span>
                     </div>

@@ -28,8 +28,8 @@ export function Sidebar({
             </div>
 
             <div className="sidebar-actions">
-                <button onClick={onCreateCharacter}>+ New</button>
-                <button onClick={onImportCharacter}>Import Card</button>
+                <button onClick={onCreateCharacter}>+ Tạo mới</button>
+                <button onClick={onImportCharacter}>Nhập Card</button>
             </div>
 
             <div className="character-list">
@@ -42,14 +42,14 @@ export function Sidebar({
                         <Avatar urlOrEmoji={character.avatar} />
                         <div className="character-meta">
                             <strong>{character.name}</strong>
-                            <span>{character.description || 'No description'}</span>
+                            <span>{character.description || 'Không có mô tả'}</span>
                         </div>
                     </button>
                 ))}
             </div>
 
             <div className="sidebar-footer">
-                <button onClick={onOpenSettings}>Settings</button>
+                <button onClick={onOpenSettings}>Cài đặt</button>
             </div>
         </aside>
     );

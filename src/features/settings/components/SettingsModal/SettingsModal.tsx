@@ -1,12 +1,12 @@
+import { useState } from 'react';
 import { Modal } from '~/components/ui/Modal/Modal';
 import type { Settings } from '~/types';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
     settings: Settings;
-    onChange: (settings: Settings) => void;
     onClose: () => void;
-    onSave: () => void;
+    onSave: (settings: Settings) => void;
 }
 
 const providerPresets = [
@@ -37,18 +37,20 @@ const providerPresets = [
     },
 ];
 
-export function SettingsModal({ settings, onChange, onClose, onSave }: SettingsModalProps) {
+export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps) {
+    const [localSettings, setLocalSettings] = useState<Settings>(settings);
+
     const updateField = (field: keyof Settings, value: string | number) => {
-        onChange({
-            ...settings,
+        setLocalSettings({
+            ...localSettings,
             [field]: value,
         });
     };
 
     return (
-        <Modal title="Settings" onClose={onClose}>
+        <Modal title="Cài đặt hệ thống" onClose={onClose}>
             <div className="form-group presets-group">
-                <label>Quick Presets</label>
+                <label>Cấu hình nhanh (Quick Presets)</label>
                 <div className="preset-buttons" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                     {providerPresets.map(preset => (
                         <button
@@ -56,8 +58,8 @@ export function SettingsModal({ settings, onChange, onClose, onSave }: SettingsM
                             className="secondary"
                             style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
                             onClick={() => {
-                                onChange({
-                                    ...settings,
+                                setLocalSettings({
+                                    ...localSettings,
                                     baseUrl: preset.baseUrl,
                                     modelName: preset.modelPlaceholder
                                 });
@@ -74,53 +76,59 @@ export function SettingsModal({ settings, onChange, onClose, onSave }: SettingsM
                 <input
                     type="password"
                     placeholder="sk-..."
-                    value={settings.apiKey}
+                    value={localSettings.apiKey}
                     onChange={(e) => updateField('apiKey', e.target.value)}
                 />
             </div>
 
             <div className="form-group">
                 <label>Base URL</label>
-                <input type="text" value={settings.baseUrl} onChange={(e) => updateField('baseUrl', e.target.value)} />
+                <input 
+                    type="text" 
+                    placeholder="https://..."
+                    value={localSettings.baseUrl} 
+                    onChange={(e) => updateField('baseUrl', e.target.value)} 
+                />
             </div>
 
             <div className="form-group">
-                <label>Model Name</label>
+                <label>Tên Model (Model Name)</label>
                 <input
                     type="text"
-                    value={settings.modelName}
+                    placeholder="gpt-4o-mini, gemini-1.5-flash..."
+                    value={localSettings.modelName}
                     onChange={(e) => updateField('modelName', e.target.value)}
                 />
             </div>
 
             <div className="form-group">
-                <label>Global Jailbreak Prompt (Post-History Instructions)</label>
+                <label>Prompt Jailbreak toàn cục (Global Jailbreak)</label>
                 <textarea
-                    placeholder="E.g. Always speak in Vietnamese, stay in character..."
-                    value={settings.globalJailbreak || ''}
+                    placeholder="Các chỉ thị ép định dạng chat hoặc lọc nội dung áp dụng cho mọi cuộc trò chuyện..."
+                    value={localSettings.globalJailbreak || ''}
                     onChange={(e) => updateField('globalJailbreak', e.target.value)}
                 />
             </div>
 
             <div className="form-row">
                 <div className="form-group">
-                    <label>Temperature</label>
+                    <label>Độ sáng tạo (Temperature)</label>
                     <input
                         type="number"
                         min="0"
                         max="2"
                         step="0.1"
-                        value={settings.temperature}
+                        value={localSettings.temperature}
                         onChange={(e) => updateField('temperature', Number(e.target.value))}
                     />
                 </div>
 
                 <div className="form-group">
-                    <label>Max Tokens</label>
+                    <label>Token tối đa (Max Tokens)</label>
                     <input
                         type="number"
                         min="1"
-                        value={settings.maxTokens}
+                        value={localSettings.maxTokens}
                         onChange={(e) => updateField('maxTokens', Number(e.target.value))}
                     />
                 </div>
@@ -128,9 +136,9 @@ export function SettingsModal({ settings, onChange, onClose, onSave }: SettingsM
 
             <div className="modal-actions">
                 <button className="secondary" onClick={onClose}>
-                    Cancel
+                    Hủy
                 </button>
-                <button onClick={onSave}>Save</button>
+                <button onClick={() => onSave(localSettings)}>Lưu cài đặt</button>
             </div>
         </Modal>
     );
