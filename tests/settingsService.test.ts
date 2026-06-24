@@ -51,4 +51,52 @@ describe('SettingsService', () => {
         expect(systemBase?.enabled).toBe(true);
         expect(systemBase?.injectionDepth).toBe(100);
     });
+
+    it('simulates editing draft prompts and isolates changes until saved', async () => {
+        // 1. Fetch current settings from DB
+        const settings = await getSettings();
+        expect(settings.prompts).toBeDefined();
+        
+        // Find the 'personality' prompt to edit
+        // @ts-ignore
+        const originalPersonality = settings.prompts.find((p: any) => p.id === 'personality');
+        expect(originalPersonality?.enabled).toBe(true);
+
+        // 2. Simulate opening Settings Modal and editing a draft locally (State Isolation)
+        // @ts-ignore
+        const draftSettings = {
+            ...settings,
+            // @ts-ignore
+            prompts: settings.prompts.map((p: any) => {
+                if (p.id === 'personality') {
+                    return { ...p, enabled: false, content: '# Personality\n{{personality}} - draft edit' };
+                }
+                return p;
+            })
+        };
+
+        // Assert that the database remains UNCHANGED (isolated draft state)
+        const checkSettingsBeforeSave = await getSettings();
+        // @ts-ignore
+        const checkPersonalityBefore = checkSettingsBeforeSave.prompts.find((p: any) => p.id === 'personality');
+        expect(checkPersonalityBefore?.enabled).toBe(true);
+        expect(checkPersonalityBefore?.content).toBe('# Personality\n{{personality}}');
+
+        // 3. Simulate clicking "Hủy" (Cancel) - we discard the draftSettings
+        // The DB must still be unchanged
+        const checkSettingsAfterCancel = await getSettings();
+        // @ts-ignore
+        const checkPersonalityAfterCancel = checkSettingsAfterCancel.prompts.find((p: any) => p.id === 'personality');
+        expect(checkPersonalityAfterCancel?.enabled).toBe(true);
+
+        // 4. Simulate clicking "Lưu" (Save) - we call saveSettings with the draft
+        await saveSettings(draftSettings);
+
+        // Assert that the database is now UPDATED with the new prompt settings
+        const savedSettings = await getSettings();
+        // @ts-ignore
+        const savedPersonality = savedSettings.prompts.find((p: any) => p.id === 'personality');
+        expect(savedPersonality?.enabled).toBe(false);
+        expect(savedPersonality?.content).toBe('# Personality\n{{personality}} - draft edit');
+    });
 });
