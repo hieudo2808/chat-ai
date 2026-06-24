@@ -60,5 +60,6 @@ describe('characterImportService', () => {
         
         const result = await importCharacterCard(file);
         expect(result.name).toBe('PNG Char');
+        expect(result.avatar).toContain('data:image/png;base64,');
     });
 });
