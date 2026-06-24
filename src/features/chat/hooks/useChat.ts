@@ -69,6 +69,9 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
         // Update local state immediately with just user message
         setCurrentMessages((prev) => [...prev, userMessage]);
 
+        let fullReply = '';
+        let assistantMessage: Message | null = null;
+
         try {
             // Save user message to DB
             await saveMessage(userMessage);
@@ -82,7 +85,7 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                 settings,
             });
 
-            const assistantMessage: Message = {
+            assistantMessage = {
                 id: createId(),
                 characterId: selectedCharacter.id,
                 role: 'assistant',
@@ -91,9 +94,8 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
 
             // Save empty assistant message and update UI
             await saveMessage(assistantMessage);
-            setCurrentMessages((prev) => [...prev, assistantMessage]);
+            setCurrentMessages((prev) => [...prev, assistantMessage as Message]);
 
-            let fullReply = '';
             const controller = new AbortController();
             abortControllerRef.current = controller;
 
@@ -104,7 +106,7 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                 onToken: (token) => {
                     fullReply += token;
                     setCurrentMessages((prev) =>
-                        prev.map((msg) => (msg.id === assistantMessage.id ? { ...msg, content: fullReply } : msg))
+                        prev.map((msg) => (msg.id === assistantMessage!.id ? { ...msg, content: fullReply } : msg))
                     );
                 },
             });
@@ -121,18 +123,44 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                     )
                 );
             } else {
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                const errorContent = `Lỗi khi gọi AI: ${errorMessage}`;
-                
-                // Assuming the last message is the assistant message we just created
-                setCurrentMessages((prev) => {
-                    const newMsgs = [...prev];
-                    const lastMsg = newMsgs[newMsgs.length - 1];
-                    if (lastMsg && lastMsg.role === 'assistant') {
-                        lastMsg.content = errorContent;
+                let errorMessage = 'Unknown error';
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                } else if (typeof error === 'object' && error !== null) {
+                    try {
+                        errorMessage = JSON.stringify(error);
+                    } catch {
+                        errorMessage = String(error);
                     }
-                    return newMsgs;
-                });
+                } else if (error) {
+                    errorMessage = String(error);
+                }
+
+                // If Gemini returns 503, translate it to a friendly message in Vietnamese
+                if (errorMessage.includes('503') || errorMessage.toLowerCase().includes('service unavailable')) {
+                    errorMessage = 'Dịch vụ của Google Gemini tạm thời bị quá tải (Lỗi 503). Vui lòng gửi lại tin nhắn hoặc thử lại sau vài giây.';
+                }
+
+                const hasPartialContent = fullReply.trim().length > 0;
+                const errorDisplay = hasPartialContent
+                    ? `${fullReply}\n\n[⚠️ Lỗi kết nối giữa chừng: ${errorMessage}]`
+                    : `Lỗi khi gọi AI: ${errorMessage}`;
+
+                if (assistantMessage) {
+                    setCurrentMessages((prev) =>
+                        prev.map((msg) => (msg.id === assistantMessage!.id ? { ...msg, content: errorDisplay } : msg))
+                    );
+                    await saveMessage({ ...assistantMessage, content: errorDisplay });
+                } else {
+                    const errorMsg: Message = {
+                        id: createId(),
+                        characterId: selectedCharacter.id,
+                        role: 'assistant',
+                        content: errorDisplay,
+                    };
+                    setCurrentMessages((prev) => [...prev, errorMsg]);
+                    await saveMessage(errorMsg);
+                }
             }
         } finally {
             setIsStreaming(false);
