@@ -21,6 +21,17 @@ export interface Message {
     createdAt?: number;
 }
 
+export interface PromptConfig {
+    id: string;
+    name: string;
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+    enabled: boolean;
+    injectionDepth: number;
+    injectionOrder: number;
+    systemPrompt: boolean;
+}
+
 export interface Settings {
     id: string;
     apiKey: string;
@@ -29,5 +40,8 @@ export interface Settings {
     temperature: number;
     maxTokens: number;
     globalJailbreak?: string;
+    topP?: number;
+    repetitionPenalty?: number;
+    prompts?: PromptConfig[];
     updatedAt: number;
 }

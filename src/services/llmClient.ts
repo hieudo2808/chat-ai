@@ -78,23 +78,115 @@ export async function streamChatCompletion({
     messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
     onToken: (token: string) => void;
     signal?: AbortSignal;
-}): Promise<void> {
+}): Promise<string> {
     validateSettings(settings);
 
-    const baseUrl = settings.baseUrl.replace(/\/$/, '');
+    const isGemini = settings.baseUrl.includes('generativelanguage.googleapis.com');
 
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+    if (isGemini) {
+        return streamGemini(messages, settings.modelName, settings.apiKey, onToken, settings, signal);
+    } else {
+        return streamOpenAI(messages, settings.modelName, settings.apiKey, settings.baseUrl, onToken, settings, signal);
+    }
+}
+
+async function streamGemini(
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    model: string,
+    apiKey: string,
+    onToken: (token: string) => void,
+    settings: Settings,
+    signal?: AbortSignal
+): Promise<string> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+
+    const systemMsgText = messages
+        .filter((m) => m.role === 'system')
+        .map((m) => m.content)
+        .join('\n\n');
+
+    const historyMsg = messages
+        .filter((m) => m.role !== 'system')
+        .map((m) => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }],
+        }));
+
+    const body: any = {
+        contents: historyMsg,
+    };
+
+    if (systemMsgText) {
+        body.systemInstruction = {
+            parts: [{ text: systemMsgText }],
+        };
+    }
+
+    body.generationConfig = {
+        temperature: settings.temperature ?? 0.8,
+        maxOutputTokens: settings.maxTokens ?? 1024,
+        ...(settings.topP !== undefined ? { topP: settings.topP } : {}),
+    };
+
+    body.safetySettings = [
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+    ];
+
+    const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${settings.apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal,
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(parseApiError(errorText, response.status));
+    }
+
+    return processSSE(response, onToken, (data) => {
+        try {
+            const parsed = JSON.parse(data);
+            return parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        } catch {
+            return '';
+        }
+    }, signal);
+}
+
+async function streamOpenAI(
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    model: string,
+    apiKey: string,
+    customBaseUrl: string,
+    onToken: (token: string) => void,
+    settings: Settings,
+    signal?: AbortSignal
+): Promise<string> {
+    const baseUrl = customBaseUrl.replace(/\/$/, '');
+    const url = `${baseUrl}/chat/completions`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-            model: settings.modelName,
+            model,
             messages,
+            stream: true,
             temperature: settings.temperature ?? 0.8,
             max_tokens: settings.maxTokens ?? 1024,
-            stream: true,
+            ...(settings.topP !== undefined ? { top_p: settings.topP } : {}),
+            ...(settings.repetitionPenalty !== undefined && settings.repetitionPenalty !== 1
+                ? { frequency_penalty: settings.repetitionPenalty }
+                : {}),
         }),
         signal,
     });
@@ -104,44 +196,65 @@ export async function streamChatCompletion({
         throw new Error(parseApiError(errorText, response.status));
     }
 
-    if (!response.body) {
-        throw new Error('Streaming is not supported by this provider.');
-    }
+    return processSSE(response, onToken, (data) => {
+        try {
+            const parsed = JSON.parse(data);
+            return parsed?.choices?.[0]?.delta?.content || '';
+        } catch {
+            return '';
+        }
+    }, signal);
+}
 
+async function processSSE(
+    response: Response,
+    onToken: (token: string) => void,
+    extractText: (data: string) => string,
+    signal?: AbortSignal
+): Promise<string> {
+    if (!response.body) throw new Error('Streaming is not supported by this provider.');
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
+    let fullText = '';
+    let buffer = '';
 
-    while (true) {
-        const { done, value } = await reader.read();
+    if (signal) {
+        signal.addEventListener('abort', () => {
+            reader.cancel().catch(() => {});
+        });
+    }
 
-        if (done) {
-            break;
-        }
-
-        const chunk = decoder.decode(value, { stream: true });
-
-        const lines = chunk
-            .split('\n')
-            .map((line) => line.trim())
-            .filter((line) => line.startsWith('data: '));
-
-        for (const line of lines) {
-            const data = line.replace('data: ', '');
-
-            if (data === '[DONE]') {
-                return;
+    try {
+        while (true) {
+            if (signal?.aborted) {
+                break;
             }
 
-            try {
-                const json = JSON.parse(data);
-                const token = json.choices?.[0]?.delta?.content ?? '';
+            const { done, value } = await reader.read();
+            if (done) break;
 
-                if (token) {
-                    onToken(token);
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.startsWith('data:')) continue;
+
+                const data = trimmed.slice(5).trim();
+                if (data === '[DONE]') continue;
+
+                const textChunk = extractText(data);
+                if (textChunk) {
+                    fullText += textChunk;
+                    onToken(textChunk);
                 }
-            } catch {
-                // Ignore parse errors for incomplete chunks or invalid json
             }
+        }
+    } finally {
+        if (typeof reader.releaseLock === 'function') {
+            reader.releaseLock();
         }
     }
+    return fullText;
 }

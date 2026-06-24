@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Settings } from '~/types';
-import { getSettings, saveSettings } from '~/services/settingsService';
+import { getSettings, saveSettings, DEFAULT_JAILBREAK } from '~/services/settingsService';
 
 const defaultSettings: Settings = {
     id: 'ai_settings',
@@ -9,7 +9,7 @@ const defaultSettings: Settings = {
     modelName: 'gpt-4o-mini',
     temperature: 0.8,
     maxTokens: 1024,
-    globalJailbreak: '',
+    globalJailbreak: DEFAULT_JAILBREAK,
     updatedAt: Date.now(),
 };
 

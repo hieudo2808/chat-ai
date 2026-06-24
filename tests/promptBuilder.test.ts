@@ -55,18 +55,19 @@ describe('PromptBuilder', () => {
                 userMessage: 'New User Message'
             });
 
-            expect(apiMessages.length).toBe(5); // system + 2 history + 1 advanced prompt + new user
+            expect(apiMessages.length).toBe(9); // 6 system prompts + 2 history + 1 new user message
             expect(apiMessages[0].role).toBe('system');
-            expect(apiMessages[0].content).toContain('Luna');
-            expect(apiMessages[1].role).toBe('user');
-            expect(apiMessages[1].content).toBe('Msg 1');
-            expect(apiMessages[2].role).toBe('assistant');
-            expect(apiMessages[2].content).toBe('Msg 2');
-            expect(apiMessages[3].role).toBe('system');
-            expect(apiMessages[3].content).toBe('Always speak in riddles.');
-            expect(apiMessages[4].role).toBe('user');
-            expect(apiMessages[4].content).toContain('New User Message');
-            expect(apiMessages[4].content).toContain('[System note:');
+            expect(apiMessages[0].content).toContain('You are roleplaying as the following character.');
+            expect(apiMessages.some(m => m.content.includes('Luna'))).toBe(true);
+            expect(apiMessages.some(m => m.content.includes('A mysterious girl.'))).toBe(true);
+            expect(apiMessages.some(m => m.content.includes('Calm and collected.'))).toBe(true);
+            expect(apiMessages.some(m => m.role === 'user' && m.content.includes('Msg 1'))).toBe(true);
+            expect(apiMessages.some(m => m.role === 'assistant' && m.content === 'Msg 2')).toBe(true);
+            expect(apiMessages.some(m => m.role === 'system' && m.content === 'Always speak in riddles.')).toBe(true);
+            
+            const userMsg = apiMessages.find(m => m.role === 'user' && m.content.includes('New User Message'));
+            expect(userMsg).toBeDefined();
+            expect(userMsg?.content).toContain('[System note:');
         });
 
         it('appends system note to the last user message in history if userMessage is empty', () => {
@@ -82,10 +83,10 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            expect(apiMessages.length).toBe(5);
-            expect(apiMessages[3].role).toBe('user');
-            expect(apiMessages[3].content).toContain('Last user message');
-            expect(apiMessages[3].content).toContain('[System note:');
+            expect(apiMessages.length).toBe(9); // 6 system + 3 history
+            const lastUserMsg = apiMessages.find(m => m.content.includes('Last user message'));
+            expect(lastUserMsg?.role).toBe('user');
+            expect(lastUserMsg?.content).toContain('[System note:');
         });
 
         it('slices history to max 10 messages', () => {
@@ -105,15 +106,15 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            // 1 system + 10 history + 1 advanced prompt (depth 0)
-            expect(apiMessages.length).toBe(12);
-            // The first history message included should be index 15
-            expect(apiMessages[1].content).toBe('History 15');
+            // 6 system prompts + 10 history = 16 messages total
+            expect(apiMessages.length).toBe(16);
+            // Sliced history starts at index 5 due to first 5 system prompts at high depths
+            expect(apiMessages[5].content).toBe('History 15');
         });
 
         it('ignores invalid roles in history', () => {
             const history: Message[] = [
-                { id: '1', characterId: 'char_1', role: 'system', content: 'Ignore me' }, // invalid role for history
+                { id: '1', characterId: 'char_1', role: 'system', content: 'Ignore me' },
                 { id: '2', characterId: 'char_1', role: 'user', content: 'Valid' },
             ];
 
@@ -123,12 +124,11 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            expect(apiMessages.length).toBe(3); // system + 1 valid history + 1 advanced prompt
-            expect(apiMessages[1].role).toBe('user');
-            expect(apiMessages[1].content).toContain('Valid');
-            expect(apiMessages[1].content).toContain('[System note:');
-            expect(apiMessages[2].role).toBe('system');
-            expect(apiMessages[2].content).toBe('Always speak in riddles.');
+            expect(apiMessages.length).toBe(7); // 6 system prompts + 1 history
+            const userMsg = apiMessages.find(m => m.content.includes('Valid'));
+            expect(userMsg?.role).toBe('user');
+            expect(userMsg?.content).toContain('Valid');
+            expect(userMsg?.content).toContain('[System note:');
         });
 
         it('respects character advancedPromptDepth', () => {
@@ -150,11 +150,9 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            expect(apiMessages.length).toBe(5);
-            expect(apiMessages[2].role).toBe('system');
-            expect(apiMessages[2].content).toBe('Speak in code.');
-            expect(apiMessages[3].content).toContain('Msg 2');
-            expect(apiMessages[4].content).toContain('Msg 3');
+            expect(apiMessages.length).toBe(9); // 5 default + 1 advanced + 3 history
+            const advPromptMsg = apiMessages.find(m => m.content === 'Speak in code.');
+            expect(advPromptMsg?.role).toBe('system');
         });
 
         it('injects globalJailbreak at depth 0 when present in settings', () => {
@@ -174,16 +172,198 @@ describe('PromptBuilder', () => {
             };
 
             const apiMessages = buildChatMessages({
+                character: {
+                    ...dummyCharacter,
+                    advancedPrompt: '',
+                },
+                history,
+                userMessage: '',
+                settings
+            });
+
+            expect(apiMessages.length).toBe(7); // 6 system prompts + 1 history message
+            const systemPrompts = apiMessages.filter(m => m.role === 'system');
+            expect(systemPrompts.length).toBe(6);
+            expect(apiMessages.some(m => m.role === 'system' && m.content === 'ALWAYS format replies as markdown.')).toBe(true);
+        });
+
+        it('builds messages dynamically from settings prompts configurations', () => {
+            const history: Message[] = [
+                { id: '1', characterId: 'char_1', role: 'user', content: 'Greeting' },
+            ];
+
+            const customPrompts = [
+                {
+                    id: 'system_base',
+                    name: 'Base',
+                    role: 'system' as const,
+                    content: 'You are roleplaying as {{char}}.',
+                    enabled: true,
+                    injectionDepth: 100,
+                    injectionOrder: 100,
+                    systemPrompt: true,
+                },
+                {
+                    id: 'custom_narrator',
+                    name: 'Narrator',
+                    role: 'system' as const,
+                    content: '[Narrator rules: active]',
+                    enabled: true,
+                    injectionDepth: 0,
+                    injectionOrder: 10,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'custom_jailbreak',
+                    name: 'Jailbreak',
+                    role: 'system' as const,
+                    content: '[Bypass: active]',
+                    enabled: true,
+                    injectionDepth: 0,
+                    injectionOrder: 20,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'disabled_prompt',
+                    name: 'Disabled',
+                    role: 'system' as const,
+                    content: 'Should not appear',
+                    enabled: false,
+                    injectionDepth: 0,
+                    injectionOrder: 100,
+                    systemPrompt: false,
+                }
+            ];
+
+            const settings = {
+                id: 'ai_settings',
+                apiKey: 'sk-test',
+                baseUrl: 'http://test',
+                modelName: 'test-model',
+                temperature: 0.8,
+                maxTokens: 100,
+                prompts: customPrompts,
+                updatedAt: Date.now(),
+            };
+
+            const apiMessages = buildChatMessages({
                 character: dummyCharacter,
                 history,
                 userMessage: '',
                 settings
             });
 
-            expect(apiMessages.length).toBe(4);
-            const systemPrompts = apiMessages.filter(m => m.role === 'system');
-            expect(systemPrompts.length).toBe(3);
-            expect(apiMessages.some(m => m.role === 'system' && m.content === 'ALWAYS format replies as markdown.')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'Should not appear')).toBe(false);
+            expect(apiMessages[0].content).toContain('You are roleplaying as Luna.');
+            
+            const narratorIndex = apiMessages.findIndex(m => m.content === '[Narrator rules: active]');
+            const jailbreakIndex = apiMessages.findIndex(m => m.content === '[Bypass: active]');
+            expect(narratorIndex).toBeGreaterThan(-1);
+            expect(jailbreakIndex).toBeGreaterThan(-1);
+            expect(narratorIndex).toBeLessThan(jailbreakIndex);
+        });
+
+        it('replaces all placeholders in prompts dynamically', () => {
+            const customPrompts = [
+                {
+                    id: 'p_char',
+                    name: 'Char name',
+                    role: 'system' as const,
+                    content: 'Char: {{char}}',
+                    enabled: true,
+                    injectionDepth: 10,
+                    injectionOrder: 10,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'p_user',
+                    name: 'User name',
+                    role: 'system' as const,
+                    content: 'User: {{user}}',
+                    enabled: true,
+                    injectionDepth: 10,
+                    injectionOrder: 20,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'p_desc',
+                    name: 'Description',
+                    role: 'system' as const,
+                    content: 'Desc: {{description}}',
+                    enabled: true,
+                    injectionDepth: 10,
+                    injectionOrder: 30,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'p_pers',
+                    name: 'Personality',
+                    role: 'system' as const,
+                    content: 'Pers: {{personality}}',
+                    enabled: true,
+                    injectionDepth: 10,
+                    injectionOrder: 40,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'p_scen',
+                    name: 'Scenario',
+                    role: 'system' as const,
+                    content: 'Scen: {{scenario}}',
+                    enabled: true,
+                    injectionDepth: 10,
+                    injectionOrder: 50,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'p_ex',
+                    name: 'Examples',
+                    role: 'system' as const,
+                    content: 'Ex: {{examples}}',
+                    enabled: true,
+                    injectionDepth: 10,
+                    injectionOrder: 60,
+                    systemPrompt: false,
+                },
+                {
+                    id: 'p_jb',
+                    name: 'Jailbreak',
+                    role: 'system' as const,
+                    content: 'Jb: {{jailbreak}}',
+                    enabled: true,
+                    injectionDepth: 10,
+                    injectionOrder: 70,
+                    systemPrompt: false,
+                }
+            ];
+
+            const settings = {
+                id: 'ai_settings',
+                apiKey: 'sk-test',
+                baseUrl: 'http://test',
+                modelName: 'test-model',
+                temperature: 0.8,
+                maxTokens: 100,
+                globalJailbreak: 'My Global Jailbreak',
+                prompts: customPrompts,
+                updatedAt: Date.now(),
+            };
+
+            const apiMessages = buildChatMessages({
+                character: dummyCharacter,
+                history: [],
+                userMessage: '',
+                settings,
+                userName: 'David'
+            });
+
+            expect(apiMessages.some(m => m.content === 'Char: Luna')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'User: David')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'Desc: A mysterious girl.')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'Pers: Calm and collected.')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'Scen: In a dark room.')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'Ex: User: Hi\nLuna: Hello')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'Jb: My Global Jailbreak')).toBe(true);
         });
     });
 });

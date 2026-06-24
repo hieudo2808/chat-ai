@@ -134,5 +134,142 @@ describe('LLM Client', () => {
             expect(onToken).toHaveBeenNthCalledWith(1, 'Hel');
             expect(onToken).toHaveBeenNthCalledWith(2, 'lo');
         });
+
+        it('handles SSE chunk fragmentation correctly using buffer', async () => {
+            const onToken = vi.fn();
+            
+            // Fragmented chunks:
+            // Chunk 1 has a broken JSON line at the end
+            // Chunk 2 has the rest of the JSON line
+            const mockChunks = [
+                new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hel'),
+                new TextEncoder().encode('lo"}}]}\n\ndata: {"choices":[{"delta":{"content":" World"}}]}\n\ndata: [DONE]\n\n')
+            ];
+            
+            let chunkIndex = 0;
+            const mockReader = {
+                read: vi.fn().mockImplementation(async () => {
+                    if (chunkIndex >= mockChunks.length) {
+                        return { done: true, value: undefined };
+                    }
+                    return { done: false, value: mockChunks[chunkIndex++] };
+                }),
+                cancel: vi.fn(),
+            };
+
+            vi.mocked(global.fetch).mockResolvedValueOnce({
+                ok: true,
+                body: {
+                    getReader: () => mockReader
+                }
+            } as unknown as Response);
+
+            await streamChatCompletion({
+                settings: validSettings,
+                messages: validMessages,
+                onToken
+            });
+
+            expect(onToken).toHaveBeenCalledTimes(2);
+            expect(onToken).toHaveBeenNthCalledWith(1, 'Hello');
+            expect(onToken).toHaveBeenNthCalledWith(2, ' World');
+        });
+
+        it('routes to direct Gemini native API when baseUrl contains generativelanguage.googleapis.com', async () => {
+            const onToken = vi.fn();
+            const geminiSettings = {
+                ...validSettings,
+                baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+                modelName: 'gemini-1.5-flash'
+            };
+            
+            const mockChunks = [
+                new TextEncoder().encode('data: {"candidates":[{"content":{"parts":[{"text":"Hi Gemini"}]}}]}\n\n'),
+                new TextEncoder().encode('data: [DONE]\n\n')
+            ];
+            
+            let chunkIndex = 0;
+            const mockReader = {
+                read: vi.fn().mockImplementation(async () => {
+                    if (chunkIndex >= mockChunks.length) {
+                        return { done: true, value: undefined };
+                    }
+                    return { done: false, value: mockChunks[chunkIndex++] };
+                }),
+                cancel: vi.fn(),
+            };
+
+            vi.mocked(global.fetch).mockResolvedValueOnce({
+                ok: true,
+                body: {
+                    getReader: () => mockReader
+                }
+            } as unknown as Response);
+
+            const result = await streamChatCompletion({
+                settings: geminiSettings,
+                messages: [
+                    { role: 'system', content: 'You are an AI' },
+                    { role: 'user', content: 'Hello' }
+                ],
+                onToken
+            });
+
+            expect(result).toBe('Hi Gemini');
+            expect(onToken).toHaveBeenCalledWith('Hi Gemini');
+            
+            expect(global.fetch).toHaveBeenCalledWith(
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=test-key',
+                expect.objectContaining({
+                    method: 'POST',
+                    body: expect.stringContaining('"safetySettings":')
+                })
+            );
+            
+            const fetchArgs = vi.mocked(global.fetch).mock.calls[0];
+            const requestBody = JSON.parse(fetchArgs[1]?.body as string);
+            expect(requestBody.systemInstruction.parts[0].text).toBe('You are an AI');
+            expect(requestBody.contents[0].role).toBe('user');
+            expect(requestBody.contents[0].parts[0].text).toBe('Hello');
+            expect(requestBody.safetySettings[0].threshold).toBe('BLOCK_NONE');
+        });
+
+        it('supports aborting stream via AbortSignal', async () => {
+            const onToken = vi.fn();
+            const controller = new AbortController();
+            
+            let callCount = 0;
+            const mockReader = {
+                read: vi.fn().mockImplementation(async () => {
+                    callCount++;
+                    if (callCount > 3) {
+                        controller.abort();
+                        return { done: true, value: undefined };
+                    }
+                    return { done: false, value: new TextEncoder().encode('data: {"choices":[{"delta":{"content":"A"}}]}\n\n') };
+                }),
+                cancel: vi.fn().mockResolvedValue(undefined),
+            };
+
+            vi.mocked(global.fetch).mockResolvedValueOnce({
+                ok: true,
+                body: {
+                    getReader: () => mockReader
+                }
+            } as unknown as Response);
+
+            try {
+                await streamChatCompletion({
+                    settings: validSettings,
+                    messages: validMessages,
+                    onToken,
+                    signal: controller.signal
+                });
+            } catch (err) {
+                // Ignore abort error
+            }
+
+            expect(mockReader.cancel).toHaveBeenCalled();
+        });
     });
 });

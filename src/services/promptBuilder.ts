@@ -1,10 +1,5 @@
-import type { Character, Message, Settings } from '../types';
-
-interface InjectedPrompt {
-    role: 'system' | 'user' | 'assistant';
-    content: string;
-    depth: number;
-}
+import type { Character, Message, Settings, PromptConfig } from '../types';
+import { DEFAULT_PROMPTS } from './settingsService';
 
 const PROMPT_CONFIG = {
     maxHistoryMessages: 10,
@@ -12,10 +7,25 @@ const PROMPT_CONFIG = {
     includeFirstMessageInSystem: false,
 };
 
-function replacePlaceholders(text: string | undefined, characterName: string, userName = 'User'): string {
+function replacePlaceholders(
+    text: string | undefined,
+    characterName: string,
+    userName = 'User',
+    character?: Character,
+    settings?: Settings
+): string {
     if (!text) return '';
 
-    return text.replaceAll('{{char}}', characterName).replaceAll('{{user}}', userName).replaceAll('\r\n', '\n').trim();
+    return text
+        .replaceAll('{{char}}', characterName)
+        .replaceAll('{{user}}', userName)
+        .replaceAll('{{description}}', character?.description || '')
+        .replaceAll('{{personality}}', character?.personality || '')
+        .replaceAll('{{scenario}}', character?.scenario || '')
+        .replaceAll('{{examples}}', character?.exampleMessages || '')
+        .replaceAll('{{jailbreak}}', settings?.globalJailbreak || '')
+        .replaceAll('\r\n', '\n')
+        .trim();
 }
 
 function limitText(text: string, maxChars: number): string {
@@ -32,17 +42,17 @@ export function buildSystemPrompt(character: Character, userName = 'User'): stri
     const characterName = character.name || 'Unnamed Character';
 
     const description = limitText(
-        replacePlaceholders(character.description, characterName, userName),
+        replacePlaceholders(character.description, characterName, userName, character),
         PROMPT_CONFIG.maxDescriptionChars,
     );
 
-    const personality = replacePlaceholders(character.personality, characterName, userName);
+    const personality = replacePlaceholders(character.personality, characterName, userName, character);
 
-    const scenario = replacePlaceholders(character.scenario, characterName, userName);
+    const scenario = replacePlaceholders(character.scenario, characterName, userName, character);
 
-    const firstMessage = replacePlaceholders(character.firstMessage, characterName, userName);
+    const firstMessage = replacePlaceholders(character.firstMessage, characterName, userName, character);
 
-    const exampleMessages = replacePlaceholders(character.exampleMessages, characterName, userName);
+    const exampleMessages = replacePlaceholders(character.exampleMessages, characterName, userName, character);
 
     return [
         'You are roleplaying as the following character.',
@@ -97,65 +107,118 @@ export function buildChatMessages({
         throw new Error('Character is required to build prompt');
     }
 
-    const systemPrompt = buildSystemPrompt(character, userName);
+    const characterName = character.name || 'Unnamed Character';
 
+    // 1. Gather all active prompts
+    const activePrompts: PromptConfig[] = [];
+    const promptsSource = settings?.prompts || DEFAULT_PROMPTS;
+
+    // Deep copy to prevent mutating database defaults
+    for (const p of promptsSource) {
+        if (p.enabled) {
+            activePrompts.push({ ...p });
+        }
+    }
+
+    // Add character advanced prompt if present (backward compatibility)
+    if (character.advancedPrompt) {
+        activePrompts.push({
+            id: 'character_advanced',
+            name: 'Chỉ dẫn nâng cao (Nhân vật)',
+            role: 'system',
+            content: character.advancedPrompt,
+            enabled: true,
+            injectionDepth: typeof character.advancedPromptDepth === 'number' ? character.advancedPromptDepth : 0,
+            injectionOrder: 100,
+            systemPrompt: false,
+        });
+    }
+
+    // Add global jailbreak if settings has it (backward compatibility for tests that don't pass prompts array)
+    if (settings?.globalJailbreak && !promptsSource.some((p) => p.id === 'jailbreak')) {
+        activePrompts.push({
+            id: 'jailbreak',
+            name: 'Bộ lọc an toàn',
+            role: 'system',
+            content: settings.globalJailbreak,
+            enabled: true,
+            injectionDepth: 0,
+            injectionOrder: 100,
+            systemPrompt: true,
+        });
+    }
+
+    // 2. Extract and resolve system_note if enabled
+    let systemNoteContent = '';
+    const systemNoteIdx = activePrompts.findIndex((p) => p.id === 'system_note');
+    if (systemNoteIdx > -1) {
+        const p = activePrompts[systemNoteIdx];
+        systemNoteContent = replacePlaceholders(p.content, characterName, userName, character, settings);
+        activePrompts.splice(systemNoteIdx, 1);
+    }
+
+    // 3. Setup history messages (recent history, max 10 messages)
     const recentHistory = history
         .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
         .filter((msg) => msg.content?.trim())
         .slice(-PROMPT_CONFIG.maxHistoryMessages)
         .map((msg) => ({
             role: msg.role as 'user' | 'assistant',
-            content: replacePlaceholders(msg.content, character.name || 'Unnamed Character', userName),
+            content: replacePlaceholders(msg.content, characterName, userName, character, settings),
         }));
 
-    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        {
-            role: 'system',
-            content: systemPrompt,
-        },
-        ...recentHistory,
-    ];
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [...recentHistory];
 
-    const injectedPrompts: InjectedPrompt[] = [];
-
-    if (character.advancedPrompt) {
-        injectedPrompts.push({
-            role: 'system',
-            content: replacePlaceholders(character.advancedPrompt, character.name || 'Unnamed Character', userName),
-            depth: typeof character.advancedPromptDepth === 'number' ? character.advancedPromptDepth : 0,
-        });
-    }
-
-    if (settings?.globalJailbreak) {
-        injectedPrompts.push({
-            role: 'system',
-            content: replacePlaceholders(settings.globalJailbreak, character.name || 'Unnamed Character', userName),
-            depth: 0,
-        });
-    }
-
-    injectedPrompts.sort((a, b) => b.depth - a.depth);
-
-    for (const p of injectedPrompts) {
-        if (!p.content.trim()) continue;
-        const insertIndex = Math.max(0, messages.length - p.depth);
-        messages.splice(insertIndex, 0, {
-            role: p.role,
-            content: p.content.trim(),
-        });
-    }
-
+    // If there is a new user message, add it to history
     if (userMessage.trim()) {
         messages.push({
             role: 'user',
-            content: `${userMessage.trim()}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages. Stay in character and follow the formatting: dialogue in "quotes", actions/thoughts/narration in *asterisks*. Do not use speaker labels or write plain text without formatting.]`,
+            content: replacePlaceholders(userMessage.trim(), characterName, userName, character, settings),
         });
-    } else {
+    }
+
+    // 4. Inject prompts at depth & order
+    // To preserve relative order when multiple prompts map to the same insertion index:
+    // We sort prompts by depth ASC (so lower depth processed first)
+    // and by order DESC (so higher order/priority processed first)
+    // and we calculate the insertion index based on the ORIGINAL messages length.
+    const originalLength = messages.length;
+    activePrompts.sort((a, b) => {
+        if (a.injectionDepth !== b.injectionDepth) {
+            return a.injectionDepth - b.injectionDepth;
+        }
+        return b.injectionOrder - a.injectionOrder;
+    });
+
+    for (const prompt of activePrompts) {
+        const resolvedContent = replacePlaceholders(prompt.content, characterName, userName, character, settings);
+        if (!resolvedContent.trim()) continue;
+
+        // Calculate insert index relative to original length
+        const insertIndex = Math.max(0, originalLength - prompt.injectionDepth);
+        messages.splice(insertIndex, 0, {
+            role: prompt.role,
+            content: resolvedContent,
+        });
+    }
+
+    // 5. Append system note to the last user message if system note is active
+    if (systemNoteContent.trim()) {
+        let appended = false;
+        // Search from end to start for the last user message
         for (let i = messages.length - 1; i >= 0; i--) {
             if (messages[i].role === 'user') {
-                messages[i].content = `${messages[i].content}\n\n[System note: You must write your ENTIRE reply (both dialogue and actions/thoughts) in the exact same language as the user's message above. DO NOT mix languages. Stay in character and follow the formatting: dialogue in "quotes", actions/thoughts/narration in *asterisks*. Do not use speaker labels or write plain text without formatting.]`;
+                messages[i].content = `${messages[i].content}\n\n${systemNoteContent}`;
+                appended = true;
                 break;
             }
+        }
+        // Fallback: if no user message found in history, inject as a system message at depth 0
+        if (!appended) {
+            messages.push({
+                role: 'system',
+                content: systemNoteContent,
+            });
         }
     }
 
