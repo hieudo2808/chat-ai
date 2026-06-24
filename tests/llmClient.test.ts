@@ -234,6 +234,58 @@ describe('LLM Client', () => {
             expect(requestBody.safetySettings[0].threshold).toBe('BLOCK_NONE');
         });
 
+        it('handles interleaved system prompts for Gemini correctly', async () => {
+            const onToken = vi.fn();
+            const geminiSettings = {
+                ...validSettings,
+                baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+                modelName: 'gemini-1.5-flash'
+            };
+            
+            const mockChunks = [
+                new TextEncoder().encode('data: {"candidates":[{"content":{"parts":[{"text":"Hi"}]}}]}\n\n'),
+                new TextEncoder().encode('data: [DONE]\n\n')
+            ];
+            
+            let chunkIndex = 0;
+            const mockReader = {
+                read: vi.fn().mockImplementation(async () => {
+                    if (chunkIndex >= mockChunks.length) {
+                        return { done: true, value: undefined };
+                    }
+                    return { done: false, value: mockChunks[chunkIndex++] };
+                }),
+                cancel: vi.fn(),
+            };
+
+            vi.mocked(global.fetch).mockResolvedValueOnce({
+                ok: true,
+                body: {
+                    getReader: () => mockReader
+                }
+            } as unknown as Response);
+
+            await streamChatCompletion({
+                settings: geminiSettings,
+                messages: [
+                    { role: 'system', content: 'Base instruction' },
+                    { role: 'user', content: 'Hello' },
+                    { role: 'system', content: 'Interleaved constraint' }
+                ],
+                onToken
+            });
+            
+            const fetchArgs = vi.mocked(global.fetch).mock.calls[0];
+            const requestBody = JSON.parse(fetchArgs[1]?.body as string);
+            
+            expect(requestBody.systemInstruction.parts[0].text).toBe('Base instruction');
+            expect(requestBody.contents.length).toBe(2);
+            expect(requestBody.contents[0].role).toBe('user');
+            expect(requestBody.contents[0].parts[0].text).toBe('Hello');
+            expect(requestBody.contents[1].role).toBe('user');
+            expect(requestBody.contents[1].parts[0].text).toBe('[System note: Interleaved constraint]');
+        });
+
         it('supports aborting stream via AbortSignal', async () => {
             const onToken = vi.fn();
             const controller = new AbortController();

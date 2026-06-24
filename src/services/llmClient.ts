@@ -100,17 +100,37 @@ async function streamGemini(
 ): Promise<string> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
-    const systemMsgText = messages
-        .filter((m) => m.role === 'system')
-        .map((m) => m.content)
-        .join('\n\n');
+    const firstHistoryIndex = messages.findIndex((m) => m.role === 'user' || m.role === 'assistant');
 
-    const historyMsg = messages
-        .filter((m) => m.role !== 'system')
-        .map((m) => ({
-            role: m.role === 'user' ? 'user' : 'model',
-            parts: [{ text: m.content }],
-        }));
+    let globalSystemPrompts: string[] = [];
+    const historyMsg: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+
+    if (firstHistoryIndex === -1) {
+        globalSystemPrompts = messages.filter((m) => m.role === 'system').map((m) => m.content);
+    } else {
+        for (let i = 0; i < firstHistoryIndex; i++) {
+            if (messages[i].role === 'system') {
+                globalSystemPrompts.push(messages[i].content);
+            }
+        }
+
+        for (let i = firstHistoryIndex; i < messages.length; i++) {
+            const m = messages[i];
+            if (m.role === 'system') {
+                historyMsg.push({
+                    role: 'user',
+                    parts: [{ text: `[System note: ${m.content}]` }],
+                });
+            } else {
+                historyMsg.push({
+                    role: m.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: m.content }],
+                });
+            }
+        }
+    }
+
+    const systemMsgText = globalSystemPrompts.join('\n\n');
 
     const body: any = {
         contents: historyMsg,
