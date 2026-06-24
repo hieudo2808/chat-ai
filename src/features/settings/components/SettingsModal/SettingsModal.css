@@ -18,7 +18,8 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
     width: 100%;
     border: 1px solid #e4e4e7;
     border-radius: 10px;
@@ -28,7 +29,8 @@ textarea {
     transition: all 0.15s ease;
 }
 
-input {
+input,
+select {
     height: 42px;
     padding: 0 12px;
 }
@@ -40,7 +42,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
     border-color: #0084ff;
     box-shadow: 0 0 0 1px #0084ff;
 }
@@ -49,4 +52,361 @@ textarea:focus {
     .form-row {
         grid-template-columns: 1fr;
     }
+}
+
+/* Expand Modal Card width for Settings Modal */
+.modal-card {
+    width: min(800px, 100%) !important;
+}
+
+/* Tabs Navigation */
+.settings-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid #e4e4e7;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+}
+
+.settings-tab-button {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #71717a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px 6px 0 0;
+}
+
+.settings-tab-button:hover {
+    color: #09090b;
+    background: #f4f4f5;
+}
+
+.settings-tab-button.active {
+    color: #0084ff;
+    border-bottom-color: #0084ff;
+}
+
+/* Prompt List Styles */
+.prompt-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.prompt-list-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #09090b;
+}
+
+.btn-add-prompt {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background: #0084ff;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-add-prompt:hover {
+    background: #0070d9;
+}
+
+.prompts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Prompt Item Row */
+.prompt-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.prompt-item-row:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.prompt-item-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+}
+
+/* iOS Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e4e4e7;
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+input:checked + .slider {
+    background-color: #10b981;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Prompt Info */
+.prompt-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.prompt-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #09090b;
+}
+
+.prompt-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #71717a;
+}
+
+/* Badge Roles */
+.role-badge {
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.role-badge.role-system {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.role-badge.role-user {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.role-badge.role-assistant {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.prompt-depth-order {
+    font-family: monospace;
+    background: #f4f4f5;
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
+/* Action Buttons */
+.prompt-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e4e4e7;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background: #f4f4f5;
+    border-color: #cbd5e1;
+}
+
+.btn-action.btn-delete {
+    color: #ef4444;
+}
+
+.btn-action.btn-delete:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.btn-action.btn-reset {
+    color: #f59e0b;
+}
+
+.btn-action.btn-reset:hover {
+    background: #fef3c7;
+    border-color: #fde047;
+}
+
+/* Editor Form Pane */
+.prompt-editor-pane {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 10px;
+}
+
+.prompt-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.prompt-editor-header h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-editor-save {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-editor-save:hover {
+    background: #059669;
+}
+
+.btn-editor-cancel {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-editor-cancel:hover {
+    background: #f1f5f9;
+}
+
+.placeholder-helper {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 8px;
+    border-radius: 6px;
+    line-height: 1.4;
+}
+
+.placeholder-tag {
+    display: inline-block;
+    background: #e2e8f0;
+    color: #334155;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 11px;
+    margin: 2px;
+    cursor: pointer;
+}
+
+.placeholder-tag:hover {
+    background: #cbd5e1;
+}
+
+/* Provider Presets and General form group enhancements */
+.form-group.presets-group {
+    background: #fafafa;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #eaeaea;
+}
+
+.preset-buttons button {
+    border: 1px solid #d4d4d8;
+    background: #ffffff;
+    color: #27272a;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.preset-buttons button:hover {
+    background: #f4f4f5;
+    border-color: #a1a1aa;
 }
