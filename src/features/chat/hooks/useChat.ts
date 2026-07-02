@@ -3,7 +3,7 @@ import type { Character, Message } from '~/types';
 import { createId } from '~/utils/id';
 import { getMessagesByCharacterId, saveMessage } from '~/services/messageService';
 import { buildChatMessages } from '~/services/promptBuilder';
-import { streamChatCompletion } from '~/services/llmClient';
+import { streamChat } from '~/features/chat/services/chatApi';
 import type { Settings } from '~/types';
 
 export function useChat(selectedCharacter: Character | undefined, settings: Settings) {
@@ -99,7 +99,8 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
             const controller = new AbortController();
             abortControllerRef.current = controller;
 
-            await streamChatCompletion({
+            await streamChat({
+                characterId: selectedCharacter.id,
                 settings,
                 messages: apiMessages,
                 signal: controller.signal,
