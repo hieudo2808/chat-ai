@@ -1,4 +1,3 @@
-import { useAuthStore } from '~/stores/authStore';
 import type { Settings } from '~/types';
 
 export type StreamChatParams = {
@@ -16,7 +15,7 @@ export async function streamChat({
     onToken,
     signal,
 }: StreamChatParams): Promise<void> {
-    const { token } = useAuthStore.getState();
+    const token = localStorage.getItem('access_token');
 
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787';
 

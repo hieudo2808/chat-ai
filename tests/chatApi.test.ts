@@ -1,17 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { streamChat } from '../src/features/chat/services/chatApi';
-import { useAuthStore } from '../src/stores/authStore';
 
-// Mock authStore to return a token
-vi.mock('../src/stores/authStore', () => ({
-    useAuthStore: {
-        getState: vi.fn(() => ({ token: 'mock-token' }))
-    }
-}));
 
 describe('chatApi', () => {
     beforeEach(() => {
         vi.stubGlobal('fetch', vi.fn());
+        vi.stubGlobal('localStorage', {
+            getItem: vi.fn().mockReturnValue('mock-token'),
+        });
     });
 
     afterEach(() => {
