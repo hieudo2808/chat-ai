@@ -10,8 +10,8 @@ describe('ModelForm', () => {
 
         render(<ModelForm mode="create" onSubmit={onSubmit} onCancel={onCancel} />);
 
-        // Title is now in Vietnamese
-        expect(screen.getByText('➕ Thêm Model mới')).toBeInTheDocument();
+        // Title is now in Vietnamese – check by text content (emoji may vary)
+        expect(screen.getByText(/Thêm Model mới/i)).toBeInTheDocument();
 
         // OpenRouter is the default preset
         const baseUrlInput = screen.getByLabelText('Base URL') as HTMLInputElement;
