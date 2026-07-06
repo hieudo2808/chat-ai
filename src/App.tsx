@@ -8,13 +8,28 @@ import { useChat } from '~/features/chat/hooks/useChat';
 import { deleteMessagesByCharacterId } from '~/services/messageService';
 
 import { SettingsModal } from '~/features/settings/components/SettingsModal/SettingsModal';
+
 import { Sidebar } from '~/features/characters/components/Sidebar/Sidebar';
 import { CharacterEditorModal } from '~/features/characters/components/CharacterEditorModal/CharacterEditorModal';
 import { ImportCharacterModal } from '~/features/characters/components/ImportCharacterModal/ImportCharacterModal';
 import { ChatPanel } from '~/features/chat/components/ChatPanel/ChatPanel';
+import { CharacterGenerationPage } from '~/features/character-generation/components/CharacterGenerationPage';
+import { useEffect, useState, useMemo } from 'react';
+import { useAuthStore } from '~/stores/authStore';
+import { NetworkStatusBanner } from '~/features/sync/components/NetworkStatusBanner';
+import { useModelProfiles } from '~/features/models/hooks/useModelProfiles';
 
 export default function App() {
-    const { settings, setSettings, isSettingsOpen, setIsSettingsOpen } = useSettings();
+    const { checkAuth } = useAuthStore();
+
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
+    const { settings, setSettings } = useSettings();
+    const { models } = useModelProfiles();
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isAiGenerationOpen, setIsAiGenerationOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const {
         characters,
@@ -33,9 +48,24 @@ export default function App() {
         isLoaded: isCharactersLoaded,
     } = useCharacters();
 
+    const effectiveSettings = useMemo(() => {
+        const defaultModel = models.find((m) => m.isDefault);
+        if (!defaultModel) return settings;
+        return {
+            ...settings,
+            apiKey: defaultModel.apiKey || settings.apiKey,
+            baseUrl: defaultModel.baseUrl || settings.baseUrl,
+            modelName: defaultModel.modelName || settings.modelName,
+            temperature: defaultModel.temperature ?? settings.temperature,
+            maxTokens: defaultModel.maxTokens ?? settings.maxTokens,
+            topP: defaultModel.topP ?? settings.topP,
+            repetitionPenalty: defaultModel.repetitionPenalty ?? settings.repetitionPenalty,
+        };
+    }, [settings, models]);
+
     const { currentMessages, input, setInput, isStreaming, handleSend, handleStopStreaming } = useChat(
         selectedCharacter,
-        settings,
+        effectiveSettings,
     );
 
     const handleSaveCharacter = async (char: Character) => {
@@ -55,22 +85,49 @@ export default function App() {
         await deleteMessagesByCharacterId(deletedId);
     };
 
+    const handleSaveAiCharacter = async (char: Character) => {
+        await saveCharacter({
+            ...char,
+            id: crypto.randomUUID(), // Ensure a new ID is generated
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        });
+        setIsAiGenerationOpen(false);
+    };
+
     if (!isCharactersLoaded) {
         return null; // Or a loading spinner
     }
 
     return (
         <div className="app-shell">
+            <NetworkStatusBanner />
             <Sidebar
                 characters={characters}
                 selectedCharacterId={selectedCharacterId}
-                onSelectCharacter={setSelectedCharacterId}
+                onSelectCharacter={(id) => {
+                    setSelectedCharacterId(id);
+                    setIsSidebarOpen(false);
+                }}
                 onCreateCharacter={() => {
                     setEditingCharacter(null);
                     setIsCharacterEditorOpen(true);
+                    setIsSidebarOpen(false);
                 }}
-                onImportCharacter={() => setIsImportOpen(true)}
-                onOpenSettings={() => setIsSettingsOpen(true)}
+                onImportCharacter={() => {
+                    setIsImportOpen(true);
+                    setIsSidebarOpen(false);
+                }}
+                onGenerateAI={() => {
+                    setIsAiGenerationOpen(true);
+                    setIsSidebarOpen(false);
+                }}
+                onSettingsClick={() => {
+                    setIsSettingsOpen(true);
+                    setIsSidebarOpen(false);
+                }}
+                isMobileOpen={isSidebarOpen}
+                onCloseMobile={() => setIsSidebarOpen(false)}
             />
 
             {selectedCharacter ? (
@@ -87,9 +144,16 @@ export default function App() {
                         setIsCharacterEditorOpen(true);
                     }}
                     onDeleteCharacter={handleDeleteCharacter}
+                    onMenuClick={() => setIsSidebarOpen(true)}
                 />
             ) : (
                 <main className="chat-panel empty-state">
+                    <header className="chat-header mobile-only-header">
+                        <button className="menu-button" onClick={() => setIsSidebarOpen(true)} aria-label="Mở danh mục">
+                            ☰
+                        </button>
+                        <h2>RoleChat</h2>
+                    </header>
                     <div className="empty-state-content">
                         <h1>Chào mừng đến với Roleplay AI</h1>
                         <p>Vui lòng tạo mới hoặc import một thẻ nhân vật để bắt đầu cuộc trò chuyện.</p>
@@ -105,9 +169,18 @@ export default function App() {
                             <button className="secondary" onClick={() => setIsImportOpen(true)}>
                                 Import Card
                             </button>
+                            <button className="secondary" onClick={() => setIsAiGenerationOpen(true)}>
+                                AI Generate
+                            </button>
                         </div>
                     </div>
                 </main>
+            )}
+
+
+
+            {isAiGenerationOpen && (
+                <CharacterGenerationPage onClose={() => setIsAiGenerationOpen(false)} onSave={handleSaveAiCharacter} />
             )}
 
             {isSettingsOpen && (
@@ -132,6 +205,7 @@ export default function App() {
             {isImportOpen && (
                 <ImportCharacterModal onClose={() => setIsImportOpen(false)} onImport={handleImportCharacter} />
             )}
+
         </div>
     );
 }
