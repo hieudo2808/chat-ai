@@ -14,7 +14,7 @@ describe('ModelForm', () => {
         expect(screen.getByText('➕ Thêm Model mới')).toBeInTheDocument();
 
         // OpenRouter is the default preset
-        const baseUrlInput = screen.getByLabelText(/Base URL/i) as HTMLInputElement;
+        const baseUrlInput = screen.getByLabelText('Base URL') as HTMLInputElement;
         expect(baseUrlInput.value).toBe('https://openrouter.ai/api/v1');
     });
 
@@ -24,13 +24,13 @@ describe('ModelForm', () => {
 
         render(<ModelForm mode="create" onSubmit={onSubmit} onCancel={onCancel} />);
 
-        const providerSelect = screen.getByLabelText(/Provider/i) as HTMLSelectElement;
+        const providerSelect = screen.getByLabelText('Provider') as HTMLSelectElement;
         fireEvent.change(providerSelect, { target: { value: 'ollama' } });
 
-        const baseUrlInput = screen.getByLabelText(/Base URL/i) as HTMLInputElement;
+        const baseUrlInput = screen.getByLabelText('Base URL') as HTMLInputElement;
         expect(baseUrlInput.value).toBe('http://localhost:11434/v1');
 
-        const modelNameInput = screen.getByLabelText(/Tên Model/i) as HTMLInputElement;
+        const modelNameInput = screen.getByLabelText('Tên Model') as HTMLInputElement;
         expect(modelNameInput.value).toBe('llama3');
     });
 
@@ -40,17 +40,17 @@ describe('ModelForm', () => {
 
         render(<ModelForm mode="create" onSubmit={onSubmit} onCancel={onCancel} />);
 
-        // Fill name (label: "Tên hiển thị")
-        const nameInput = screen.getByRole('textbox', { name: /Tên hiển thị/i });
+        // Fill name via associated label
+        const nameInput = screen.getByLabelText('Tên hiển thị');
         fireEvent.change(nameInput, { target: { value: 'My Model' } });
 
-        // Submit button is now "Thêm Model" in create mode
+        // Submit button is "Thêm Model" in create mode
         const submitButton = screen.getByText('Thêm Model');
         fireEvent.click(submitButton);
 
         expect(onSubmit).toHaveBeenCalledTimes(1);
         expect(onSubmit.mock.calls[0][0].name).toBe('My Model');
-        expect(onSubmit.mock.calls[0][0].provider).toBe('openrouter'); // default
+        expect(onSubmit.mock.calls[0][0].provider).toBe('openrouter');
     });
 
     it('should submit the form with custom topP and repetitionPenalty parameters', () => {
@@ -60,18 +60,16 @@ describe('ModelForm', () => {
         render(<ModelForm mode="create" onSubmit={onSubmit} onCancel={onCancel} />);
 
         // Fill name
-        const nameInput = screen.getByRole('textbox', { name: /Tên hiển thị/i });
+        const nameInput = screen.getByLabelText('Tên hiển thị');
         fireEvent.change(nameInput, { target: { value: 'My Test Model' } });
 
-        // Fill topP
-        const topPInput = screen.getByLabelText(/Top P/i) as HTMLInputElement;
+        // topP and repetitionPenalty via labels
+        const topPInput = screen.getByLabelText('Top P') as HTMLInputElement;
         fireEvent.change(topPInput, { target: { value: '0.85' } });
 
-        // Fill repetitionPenalty
-        const repPenaltyInput = screen.getByLabelText(/Repetition Penalty/i) as HTMLInputElement;
+        const repPenaltyInput = screen.getByLabelText('Repetition Penalty') as HTMLInputElement;
         fireEvent.change(repPenaltyInput, { target: { value: '1.2' } });
 
-        // Submit
         const submitButton = screen.getByText('Thêm Model');
         fireEvent.click(submitButton);
 

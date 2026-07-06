@@ -41,9 +41,10 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
         const { name, value, type } = e.target;
         const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : type === 'number' ? (value === '' ? undefined : Number(value)) : value,
+            [name]:
+                type === 'checkbox' ? checked : type === 'number' ? (value === '' ? undefined : Number(value)) : value,
         }));
     };
 
@@ -51,7 +52,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
         const provider = e.target.value as AiModelProfileInput['provider'];
         const preset = PROVIDER_PRESETS[provider];
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             provider,
             baseUrl: preset.baseUrl,
@@ -67,13 +68,14 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
     return (
         <form onSubmit={handleSubmit} className="model-form-pane">
             <h3 style={{ marginTop: 0, marginBottom: '20px' }}>
-                {mode === 'create' ? '➕ Thêm Model mới' : '✏️ Chỉnh sửa Model'}
+                {mode === 'create' ? 'Thêm Model mới' : 'Chỉnh sửa Model'}
             </h3>
 
             {/* Tên profile & Provider */}
             <div className="form-group">
-                <label>Tên hiển thị</label>
+                <label htmlFor="model-name-input">Tên hiển thị</label>
                 <input
+                    id="model-name-input"
                     required
                     type="text"
                     name="name"
@@ -84,8 +86,8 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
             </div>
 
             <div className="form-group">
-                <label>Nhà cung cấp (Provider)</label>
-                <select name="provider" value={formData.provider} onChange={handleProviderChange}>
+                <label htmlFor="model-provider">Provider</label>
+                <select id="model-provider" name="provider" value={formData.provider} onChange={handleProviderChange}>
                     <option value="openrouter">OpenRouter</option>
                     <option value="openai">OpenAI</option>
                     <option value="ollama">Ollama (Local)</option>
@@ -95,8 +97,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
             </div>
 
             <div className="form-group">
-                <label>Base URL</label>
+                <label htmlFor="model-base-url">Base URL</label>
                 <input
+                    id="model-base-url"
                     required
                     type="url"
                     name="baseUrl"
@@ -107,8 +110,11 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
             </div>
 
             <div className="form-group">
-                <label>API Key <span style={{ color: '#71717a', fontWeight: 400 }}>(để trống nếu dùng local)</span></label>
+                <label htmlFor="model-api-key">
+                    API Key <span style={{ color: '#71717a', fontWeight: 400 }}>(để trống nếu dùng local)</span>
+                </label>
                 <input
+                    id="model-api-key"
                     type="password"
                     name="apiKey"
                     value={formData.apiKey || ''}
@@ -118,8 +124,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
             </div>
 
             <div className="form-group">
-                <label>Tên Model</label>
+                <label htmlFor="model-model-name">Tên Model</label>
                 <input
+                    id="model-model-name"
                     required
                     type="text"
                     name="modelName"
@@ -159,8 +166,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
 
             <div className="form-row">
                 <div className="form-group">
-                    <label>Top P</label>
+                    <label htmlFor="model-top-p">Top P</label>
                     <input
+                        id="model-top-p"
                         type="number"
                         name="topP"
                         min="0"
@@ -172,8 +180,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
                     />
                 </div>
                 <div className="form-group">
-                    <label>Repetition Penalty</label>
+                    <label htmlFor="model-rep-penalty">Repetition Penalty</label>
                     <input
+                        id="model-rep-penalty"
                         type="number"
                         name="repetitionPenalty"
                         min="0"
@@ -188,7 +197,10 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
 
             {/* Checkboxes với giải thích rõ ràng */}
             <div className="model-form-checkboxes">
-                <label className="model-form-checkbox-item" title="Model hỗ trợ phản hồi từng từ theo thời gian thực (streaming). Nên bật với hầu hết các API hiện đại.">
+                <label
+                    className="model-form-checkbox-item"
+                    title="Model hỗ trợ phản hồi từng từ theo thời gian thực (streaming). Nên bật với hầu hết các API hiện đại."
+                >
                     <input
                         type="checkbox"
                         name="supportsStreaming"
@@ -200,7 +212,10 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
                         <span className="checkbox-hint">Hiển thị phản hồi từng từ theo thời gian thực</span>
                     </span>
                 </label>
-                <label className="model-form-checkbox-item" title="Model hỗ trợ trả về JSON có cấu trúc. Dùng cho tính năng AI Generate nhân vật.">
+                <label
+                    className="model-form-checkbox-item"
+                    title="Model hỗ trợ trả về JSON có cấu trúc. Dùng cho tính năng AI Generate nhân vật."
+                >
                     <input
                         type="checkbox"
                         name="supportsJsonMode"
@@ -212,13 +227,11 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
                         <span className="checkbox-hint">Cần thiết cho AI Generate nhân vật</span>
                     </span>
                 </label>
-                <label className="model-form-checkbox-item" title="Đặt model này làm mặc định cho mọi cuộc trò chuyện. Sẽ ghi đè cấu hình LLM Defaults.">
-                    <input
-                        type="checkbox"
-                        name="isDefault"
-                        checked={formData.isDefault}
-                        onChange={handleChange}
-                    />
+                <label
+                    className="model-form-checkbox-item"
+                    title="Đặt model này làm mặc định cho mọi cuộc trò chuyện. Sẽ ghi đè cấu hình LLM Defaults."
+                >
+                    <input type="checkbox" name="isDefault" checked={formData.isDefault} onChange={handleChange} />
                     <span className="checkbox-text">
                         <strong>Đặt làm Model mặc định</strong>
                         <span className="checkbox-hint">Dùng cho tất cả cuộc trò chuyện, ghi đè LLM Defaults</span>
@@ -227,7 +240,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
             </div>
 
             <div className="modal-actions" style={{ marginTop: '24px' }}>
-                <button type="button" onClick={onCancel} className="secondary">Hủy</button>
+                <button type="button" onClick={onCancel} className="secondary">
+                    Hủy
+                </button>
                 <button type="submit">{mode === 'create' ? 'Thêm Model' : 'Lưu thay đổi'}</button>
             </div>
         </form>
