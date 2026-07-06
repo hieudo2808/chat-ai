@@ -48,8 +48,10 @@ export default function App() {
         isLoaded: isCharactersLoaded,
     } = useCharacters();
 
+    const defaultModel = models.find((m) => m.isDefault);
+    const hasDefaultModel = !!defaultModel;
+
     const effectiveSettings = useMemo(() => {
-        const defaultModel = models.find((m) => m.isDefault);
         if (!defaultModel) return settings;
         return {
             ...settings,
@@ -61,7 +63,7 @@ export default function App() {
             topP: defaultModel.topP ?? settings.topP,
             repetitionPenalty: defaultModel.repetitionPenalty ?? settings.repetitionPenalty,
         };
-    }, [settings, models]);
+    }, [settings, models, defaultModel]);
 
     const { currentMessages, input, setInput, isStreaming, handleSend, handleStopStreaming } = useChat(
         selectedCharacter,
@@ -155,6 +157,12 @@ export default function App() {
                         <h2>RoleChat</h2>
                     </header>
                     <div className="empty-state-content">
+                        {!hasDefaultModel && (
+                            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px 18px', marginBottom: '24px', color: '#92400e', fontSize: '13px', lineHeight: '1.6', maxWidth: '420px', textAlign: 'left' }}>
+                                <strong>⚠️ Chưa có Model LLM nào được đặt làm mặc định.</strong><br />
+                                Mở <strong>Cài đặt → Quản lý LLM</strong> để thêm và chọn model trước khi bắt đầu chat.
+                            </div>
+                        )}
                         <h1>Chào mừng đến với Roleplay AI</h1>
                         <p>Vui lòng tạo mới hoặc import một thẻ nhân vật để bắt đầu cuộc trò chuyện.</p>
                         <div className="empty-state-actions">

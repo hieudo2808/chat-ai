@@ -3,7 +3,6 @@ import { Modal } from '~/components/ui/Modal/Modal';
 import type { Settings, PromptConfig } from '~/types';
 import { DEFAULT_PROMPTS } from '~/services/settingsService';
 import { ModelManagementTab } from '~/features/models/components/ModelManagementTab';
-import { useModelProfiles } from '~/features/models/hooks/useModelProfiles';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -12,23 +11,15 @@ interface SettingsModalProps {
     onSave: (settings: Settings) => void;
 }
 
-const providerPresets = [
-    { name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1', modelPlaceholder: 'openrouter-model-id' },
-    { name: 'OpenAI', baseUrl: 'https://api.openai.com/v1', modelPlaceholder: 'gpt-4o-mini' },
-    { name: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', modelPlaceholder: 'gemini-1.5-flash' },
-    { name: 'LM Studio', baseUrl: 'http://localhost:1234/v1', modelPlaceholder: 'local-model-name' },
-    { name: 'Ollama', baseUrl: 'http://localhost:11434/v1', modelPlaceholder: 'local-model-name' },
-];
+
 
 export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps) {
     const [localSettings, setLocalSettings] = useState<Settings>({
         ...settings,
         prompts: settings.prompts || [...DEFAULT_PROMPTS],
     });
-    const [activeTab, setActiveTab] = useState<'profile' | 'general' | 'prompts' | 'models'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'prompts' | 'models'>('profile');
     const [editingPrompt, setEditingPrompt] = useState<PromptConfig | null>(null);
-    const { models } = useModelProfiles();
-    const activeDefaultModel = models.find((m) => m.isDefault);
 
     const updateField = (field: keyof Settings, value: unknown) => {
         setLocalSettings({ ...localSettings, [field]: value });
@@ -89,24 +80,12 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
         </button>
     );
 
-    const renderInput = (label: string, field: keyof Settings, type = 'text', placeholder = '', min?: string, max?: string, step?: string) => (
-        <div className="form-group">
-            <label>{label}</label>
-            <input
-                type={type}
-                placeholder={placeholder}
-                value={(localSettings[field] ?? '') as string | number}
-                onChange={(e) => updateField(field, type === 'number' ? (e.target.value === '' ? undefined : Number(e.target.value)) : e.target.value)}
-                min={min} max={max} step={step}
-            />
-        </div>
-    );
+
 
     return (
         <Modal title="Cài đặt hệ thống" onClose={onClose}>
             <div className="settings-tabs">
                 {renderTabButton('profile', 'Hồ sơ')}
-                {renderTabButton('general', 'LLM Defaults')}
                 {renderTabButton('prompts', 'System Prompts')}
                 {renderTabButton('models', 'Quản lý LLM')}
             </div>
@@ -125,43 +104,6 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                     </div>
                 )}
 
-                {activeTab === 'general' && (
-                    <div>
-                        {activeDefaultModel && (
-                            <div className="warning-banner" style={{ background: '#fffbeb', border: '1px solid #fef3c7', padding: '12px', borderRadius: '8px', marginBottom: '16px', color: '#b45309', fontSize: '13px', lineHeight: '1.4' }}>
-                                ⚠️ Cấu hình mặc định đang bị ghi đè bởi model <strong>{activeDefaultModel.name}</strong> ({activeDefaultModel.modelName}) trong tab <strong>Quản lý LLM</strong>. Các thay đổi tại đây (ngoại trừ Prompt Jailbreak) sẽ không có hiệu lực khi chat.
-                            </div>
-                        )}
-                        <div className="form-group">
-                            <label>Cấu hình nhanh (Quick Presets)</label>
-                            <div className="preset-buttons">
-                                {providerPresets.map(preset => (
-                                    <button
-                                        key={preset.name}
-                                        onClick={() => {
-                                            setLocalSettings({ ...localSettings, baseUrl: preset.baseUrl, modelName: preset.modelPlaceholder });
-                                        }}
-                                    >
-                                        {preset.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {renderInput('API Key', 'apiKey', 'password', 'sk-...')}
-                        {renderInput('Base URL', 'baseUrl', 'text', 'https://...')}
-                        {renderInput('Tên Model mặc định', 'modelName', 'text', 'gpt-4o-mini, gemini-1.5-flash...')}
-
-                        <div className="form-row">
-                            {renderInput('Temperature', 'temperature', 'number', '', '0', '2', '0.1')}
-                            {renderInput('Max Tokens', 'maxTokens', 'number', '', '1')}
-                        </div>
-                        <div className="form-row">
-                            {renderInput('Top P', 'topP', 'number', '', '0', '1', '0.05')}
-                            {renderInput('Repetition Penalty', 'repetitionPenalty', 'number', '', '0', '2', '0.05')}
-                        </div>
-                    </div>
-                )}
 
                 {activeTab === 'prompts' && (
                     <div>
