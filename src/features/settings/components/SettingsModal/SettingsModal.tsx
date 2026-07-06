@@ -206,7 +206,7 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                                     <div className="placeholder-helper">
                                         <strong>Chèn thẻ:</strong>
                                         <div>
-                                            {['{{char}}', '{{user}}', '{{description}}', '{{personality}}', '{{scenario}}', '{{examples}}', '{{jailbreak}}'].map((tag) => (
+                                            {['{{char}}', '{{user}}', '{{description}}', '{{personality}}', '{{scenario}}', '{{examples}}'].map((tag) => (
                                                 <span key={tag} className="placeholder-tag" onClick={() => setEditingPrompt({ ...editingPrompt, content: editingPrompt.content + tag })}>
                                                     {tag}
                                                 </span>
