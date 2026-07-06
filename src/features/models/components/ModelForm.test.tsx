@@ -10,9 +10,10 @@ describe('ModelForm', () => {
 
         render(<ModelForm mode="create" onSubmit={onSubmit} onCancel={onCancel} />);
 
-        expect(screen.getByText('Add New Model')).toBeInTheDocument();
+        // Title is now in Vietnamese
+        expect(screen.getByText('➕ Thêm Model mới')).toBeInTheDocument();
 
-        // OpenRouter is the default preset, so baseUrl should be openrouter's
+        // OpenRouter is the default preset
         const baseUrlInput = screen.getByLabelText(/Base URL/i) as HTMLInputElement;
         expect(baseUrlInput.value).toBe('https://openrouter.ai/api/v1');
     });
@@ -29,7 +30,7 @@ describe('ModelForm', () => {
         const baseUrlInput = screen.getByLabelText(/Base URL/i) as HTMLInputElement;
         expect(baseUrlInput.value).toBe('http://localhost:11434/v1');
 
-        const modelNameInput = screen.getByLabelText(/Model Name/i) as HTMLInputElement;
+        const modelNameInput = screen.getByLabelText(/Tên Model/i) as HTMLInputElement;
         expect(modelNameInput.value).toBe('llama3');
     });
 
@@ -39,12 +40,12 @@ describe('ModelForm', () => {
 
         render(<ModelForm mode="create" onSubmit={onSubmit} onCancel={onCancel} />);
 
-        // Fill name
-        const nameInput = screen.getByRole('textbox', { name: /^Name$/i });
+        // Fill name (label: "Tên hiển thị")
+        const nameInput = screen.getByRole('textbox', { name: /Tên hiển thị/i });
         fireEvent.change(nameInput, { target: { value: 'My Model' } });
 
-        // Submit form
-        const submitButton = screen.getByText('Save');
+        // Submit button is now "Thêm Model" in create mode
+        const submitButton = screen.getByText('Thêm Model');
         fireEvent.click(submitButton);
 
         expect(onSubmit).toHaveBeenCalledTimes(1);
@@ -59,7 +60,7 @@ describe('ModelForm', () => {
         render(<ModelForm mode="create" onSubmit={onSubmit} onCancel={onCancel} />);
 
         // Fill name
-        const nameInput = screen.getByRole('textbox', { name: /^Name$/i });
+        const nameInput = screen.getByRole('textbox', { name: /Tên hiển thị/i });
         fireEvent.change(nameInput, { target: { value: 'My Test Model' } });
 
         // Fill topP
@@ -70,8 +71,8 @@ describe('ModelForm', () => {
         const repPenaltyInput = screen.getByLabelText(/Repetition Penalty/i) as HTMLInputElement;
         fireEvent.change(repPenaltyInput, { target: { value: '1.2' } });
 
-        // Submit form
-        const submitButton = screen.getByText('Save');
+        // Submit
+        const submitButton = screen.getByText('Thêm Model');
         fireEvent.click(submitButton);
 
         expect(onSubmit).toHaveBeenCalledTimes(1);

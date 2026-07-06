@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { SettingsModal } from '../src/features/settings/components/SettingsModal/SettingsModal';
 import type { Settings } from '../src/types';
 
+// ModelManagementTab internally uses useModelProfiles, so mock it here
 vi.mock('../src/features/models/hooks/useModelProfiles', () => ({
     useModelProfiles: vi.fn(() => ({
         models: [
@@ -41,24 +42,45 @@ const mockSettings: Settings = {
 };
 
 describe('SettingsModal', () => {
-    it('should render LLM Management tab and switch to it on click', () => {
+    it('renders without crashing and shows Hồ sơ tab', () => {
         render(
-            <SettingsModal 
-                settings={mockSettings} 
-                onClose={vi.fn()} 
-                onSave={vi.fn()} 
+            <SettingsModal
+                settings={mockSettings}
+                onClose={vi.fn()}
+                onSave={vi.fn()}
             />
         );
 
-        // Verify Quản lý LLM tab button is rendered
-        const tabButton = screen.getByText('Quản lý LLM');
-        expect(tabButton).toBeInTheDocument();
+        // LLM Defaults tab is removed — only 3 tabs remain
+        expect(screen.getByText('Hồ sơ')).toBeInTheDocument();
+        expect(screen.getByText('System Prompts')).toBeInTheDocument();
+        expect(screen.getByText('Quản lý LLM')).toBeInTheDocument();
+        expect(screen.queryByText('LLM Defaults')).not.toBeInTheDocument();
+    });
 
-        // Click on tab
-        fireEvent.click(tabButton);
+    it('switches to System Prompts tab on click', () => {
+        render(
+            <SettingsModal
+                settings={mockSettings}
+                onClose={vi.fn()}
+                onSave={vi.fn()}
+            />
+        );
 
-        // Verify model management description is displayed
-        expect(screen.getByText(/Quản lý kết nối LLM/i)).toBeInTheDocument();
+        fireEvent.click(screen.getByText('System Prompts'));
+        expect(screen.getByText('Quản lý khối Prompt')).toBeInTheDocument();
+    });
+
+    it('switches to Quản lý LLM tab and shows model list', () => {
+        render(
+            <SettingsModal
+                settings={mockSettings}
+                onClose={vi.fn()}
+                onSave={vi.fn()}
+            />
+        );
+
+        fireEvent.click(screen.getByText('Quản lý LLM'));
         expect(screen.getByText('Gemini Profile')).toBeInTheDocument();
     });
 });
