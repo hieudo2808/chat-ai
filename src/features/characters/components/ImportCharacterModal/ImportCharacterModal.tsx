@@ -3,6 +3,8 @@ import { Modal } from '~/components/ui/Modal/Modal';
 import { importCharacterCard } from '~/services/characterImportService';
 import type { Character } from '~/types';
 import { Avatar } from '~/components/ui/Avatar/Avatar';
+import { useSettings } from '~/features/settings/hooks/useSettings';
+import { replacePlaceholders } from '~/services/promptBuilder';
 import './ImportCharacterModal.css';
 
 interface ImportCharacterModalProps {
@@ -11,6 +13,7 @@ interface ImportCharacterModalProps {
 }
 
 export function ImportCharacterModal({ onClose, onImport }: ImportCharacterModalProps) {
+    const { settings } = useSettings();
     const [preview, setPreview] = useState<Character | null>(null);
     const [error, setError] = useState<string>('');
     const [isDragging, setIsDragging] = useState(false);
@@ -82,10 +85,10 @@ export function ImportCharacterModal({ onClose, onImport }: ImportCharacterModal
                     </div>
                     
                     <div className="preview-details">
-                        <p><strong>Mô tả ngắn:</strong> {preview.description || <span className="empty-text">Không có</span>}</p>
-                        <p><strong>Tính cách:</strong> {preview.personality || <span className="empty-text">Không có</span>}</p>
-                        <p><strong>Bối cảnh:</strong> {preview.scenario || <span className="empty-text">Không có</span>}</p>
-                        <p><strong>Lời chào đầu:</strong> {preview.firstMessage || <span className="empty-text">Không có</span>}</p>
+                        <p><strong>Mô tả ngắn:</strong> {replacePlaceholders(preview.description, preview.name, settings.userName || 'User', preview) || <span className="empty-text">Không có</span>}</p>
+                        <p><strong>Tính cách:</strong> {replacePlaceholders(preview.personality, preview.name, settings.userName || 'User', preview) || <span className="empty-text">Không có</span>}</p>
+                        <p><strong>Bối cảnh:</strong> {replacePlaceholders(preview.scenario, preview.name, settings.userName || 'User', preview) || <span className="empty-text">Không có</span>}</p>
+                        <p><strong>Lời chào đầu:</strong> {replacePlaceholders(preview.firstMessage, preview.name, settings.userName || 'User', preview) || <span className="empty-text">Không có</span>}</p>
                     </div>
                 </div>
             )}

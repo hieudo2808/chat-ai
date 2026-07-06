@@ -7,9 +7,10 @@ interface ChatInputProps {
     onChange: (val: string) => void;
     onSend: () => void;
     onStop: () => void;
+    disabled?: boolean;
 }
 
-export function ChatInput({ input, isStreaming, onChange, onSend, onStop }: ChatInputProps) {
+export function ChatInput({ input, isStreaming, onChange, onSend, onStop, disabled }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -23,7 +24,7 @@ export function ChatInput({ input, isStreaming, onChange, onSend, onStop }: Chat
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (input.trim()) onSend();
+            if (input.trim() && !disabled) onSend();
         }
     };
 
@@ -31,19 +32,20 @@ export function ChatInput({ input, isStreaming, onChange, onSend, onStop }: Chat
         <footer className="chat-input-area">
             <textarea
                 ref={textareaRef}
-                placeholder="Nhập tin nhắn..."
+                placeholder={disabled ? "Offline: Chat is disabled" : "Nhập tin nhắn..."}
                 value={input}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
+                disabled={disabled}
             />
 
             {isStreaming ? (
-                <button className="stop-button" onClick={onStop}>
+                <button className="stop-button" onClick={onStop} disabled={disabled && !isStreaming}>
                     ⏹
                 </button>
             ) : (
-                <button onClick={() => { if (input.trim()) onSend() }}>
+                <button onClick={() => { if (input.trim() && !disabled) onSend() }} disabled={disabled || !input.trim()}>
                     ➤
                 </button>
             )}

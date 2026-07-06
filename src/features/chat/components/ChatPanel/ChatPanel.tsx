@@ -3,6 +3,7 @@ import type { Character, Message } from '~/types';
 import { MessageBubble } from '../MessageBubble/MessageBubble';
 import { ChatInput } from '../ChatInput/ChatInput';
 import { Avatar } from '~/components/ui/Avatar/Avatar';
+import { useNetworkStatus } from '~/features/sync/hooks/useNetworkStatus';
 import './ChatPanel.css';
 
 interface ChatPanelProps {
@@ -15,6 +16,7 @@ interface ChatPanelProps {
     onStopStreaming: () => void;
     onEditCharacter: () => void;
     onDeleteCharacter: () => void;
+    onMenuClick?: () => void;
 }
 
 export function ChatPanel({
@@ -27,8 +29,10 @@ export function ChatPanel({
     onStopStreaming,
     onEditCharacter,
     onDeleteCharacter,
+    onMenuClick,
 }: ChatPanelProps) {
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const { isOnline } = useNetworkStatus();
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -38,13 +42,18 @@ export function ChatPanel({
         <main className="chat-panel">
             <header className="chat-header">
                 <div className="chat-character-info">
+                    {onMenuClick && (
+                        <button className="menu-button" onClick={onMenuClick} aria-label="Mở danh mục">
+                            ☰
+                        </button>
+                    )}
                     <Avatar className="large" urlOrEmoji={selectedCharacter?.avatar} />
                     <div>
                         <h2>{selectedCharacter?.name}</h2>
                     </div>
                 </div>
 
-                <div className="chat-header-actions">
+                <div className="chat-header-actions gap-2 flex items-center">
                     <button onClick={onEditCharacter}>Chỉnh sửa</button>
                     <button className="danger" onClick={onDeleteCharacter}>
                         Xóa
@@ -74,6 +83,7 @@ export function ChatPanel({
                 onChange={onInputChange}
                 onSend={onSend}
                 onStop={onStopStreaming}
+                disabled={!isOnline}
             />
         </main>
     );

@@ -3,15 +3,35 @@
 }
 
 :root {
-    font-family:
-        'Inter',
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        'Segoe UI',
-        sans-serif;
-    color: #09090b;
-    background: #ffffff;
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --primary: #0070f3; /* Accent blue */
+    --primary-hover: #0051b3;
+    --primary-light: #eff6ff;
+    --primary-glow: rgba(0, 112, 243, 0.15);
+    
+    --danger: #e11d48; /* Red/Rose warning */
+    --danger-hover: #be123c;
+    --danger-light: #fef2f2;
+    --danger-border: #fca5a5;
+    --danger-text: #991b1b;
+    
+    --success: #16a34a; /* Green success */
+    --success-hover: #15803d;
+    --success-light: #f0fdf4;
+    
+    --border-color: #e4e4e7;
+    --bg-surface: #fafafa;
+    --bg-card: #ffffff;
+    --text-primary: #09090b;
+    --text-secondary: #71717a;
+    
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--bg-card);
     letter-spacing: -0.01em; /* Make Inter look more premium/tighter like Apple's San Francisco */
 }
 
@@ -129,4 +149,109 @@ button:active {
     border-radius: inherit;
     display: block;
 }
+
+/* Common Form Styles */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Switch toggle */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #d4d4d8;
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.network-status-banner {
+    background-color: var(--danger-light);
+    color: var(--danger-text);
+    border-bottom: 1px solid var(--danger-border);
+    padding: 8px 16px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-size: 13px;
+    font-weight: 500;
+}
+
 

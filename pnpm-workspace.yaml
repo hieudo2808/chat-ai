@@ -1,0 +1,10 @@
+packages:
+  - "."
+  - "worker"
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@cloudflare/workers-types@4.20260702.1'
+  - vite@8.1.3

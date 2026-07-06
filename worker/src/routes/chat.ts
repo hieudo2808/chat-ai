@@ -3,7 +3,8 @@ import { verifyJwt } from '../lib/jwt';
 import { streamChatCompletion, Settings } from '../lib/llmClient';
 
 export interface Env {
-    SECRET: string;
+    DB: D1Database;
+    JWT_SECRET: string;
 }
 
 export async function handleChatStream(request: Request, env: Env): Promise<Response> {
@@ -18,7 +19,7 @@ export async function handleChatStream(request: Request, env: Env): Promise<Resp
     }
 
     const token = authHeader.substring(7);
-    const payload = await verifyJwt(token, env.SECRET);
+    const payload = await verifyJwt(token, env.JWT_SECRET);
 
     if (!payload) {
         return new Response(JSON.stringify({
@@ -47,7 +48,7 @@ export async function handleChatStream(request: Request, env: Env): Promise<Resp
         }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
-    const { settings, messages, characterId } = body;
+    const { settings, messages } = body;
 
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();

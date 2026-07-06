@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import type { Character, Message } from '~/types';
 import { createId } from '~/utils/id';
 import { getMessagesByCharacterId, saveMessage } from '~/services/messageService';
-import { buildChatMessages } from '~/services/promptBuilder';
-import { streamChat } from '~/features/chat/services/chatApi';
+import { buildChatMessages, replacePlaceholders } from '~/services/promptBuilder';
+
 import type { Settings } from '~/types';
 
 export function useChat(selectedCharacter: Character | undefined, settings: Settings) {
@@ -20,7 +20,7 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
         }
 
         let isMounted = true;
-        
+
         async function loadMessages() {
             const msgs = await getMessagesByCharacterId(selectedCharacter!.id);
             if (!isMounted) return;
@@ -31,7 +31,12 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                     id: createId(),
                     characterId: selectedCharacter!.id,
                     role: 'assistant',
-                    content: selectedCharacter!.firstMessage || 'Xin chào.',
+                    content: replacePlaceholders(
+                        selectedCharacter!.firstMessage || 'Xin chào.',
+                        selectedCharacter!.name,
+                        settings.userName || 'User',
+                        selectedCharacter!
+                    ),
                 };
                 await saveMessage(firstMsg);
                 setCurrentMessages([firstMsg]);
@@ -82,6 +87,7 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                 character: selectedCharacter,
                 history,
                 userMessage: '', // userMessage is already in history, no need to append again
+                userName: settings.userName,
                 settings,
             });
 
@@ -99,69 +105,83 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
             const controller = new AbortController();
             abortControllerRef.current = controller;
 
-            await streamChat({
-                characterId: selectedCharacter.id,
-                settings,
-                messages: apiMessages,
-                signal: controller.signal,
-                onToken: (token) => {
-                    fullReply += token;
+            const { ChatWsApi } = await import('~/features/chat/services/chatWsApi');
+            const wsApi = new ChatWsApi(selectedCharacter.id, 'mock-token');
+
+            wsApi.onMessage((data) => {
+                const msgData = data as { type: string, content: string, error: string };
+                if (msgData.type === 'token') {
+                    fullReply += msgData.content;
                     setCurrentMessages((prev) =>
-                        prev.map((msg) => (msg.id === assistantMessage!.id ? { ...msg, content: fullReply } : msg))
+                        prev.map((msg) => (msg.id === assistantMessage!.id ? { ...msg, content: fullReply } : msg)),
                     );
-                },
+                } else if (msgData.type === 'done') {
+                    saveMessage({ ...assistantMessage!, content: fullReply });
+                    setIsStreaming(false);
+                    abortControllerRef.current = null;
+                    wsApi.close();
+                } else if (msgData.type === 'error') {
+                    throw new Error(msgData.error);
+                }
             });
 
-            await saveMessage({ ...assistantMessage, content: fullReply });
-        } catch (error: unknown) {
-            if (error instanceof Error && error.name === 'AbortError') {
-                // User stopped the generation
+            // Start chat
+            wsApi.sendMessage(text, selectedCharacter.id, settings, apiMessages);
+
+            // Wait until done or error, handled in events.
+            // But we need to handle AbortController logic if user stops:
+            controller.signal.addEventListener('abort', () => {
+                wsApi.close();
                 setCurrentMessages((prev) =>
                     prev.map((msg) =>
                         msg.role === 'assistant' && msg.content === ''
                             ? { ...msg, content: '[Đã dừng phản hồi]' }
-                            : msg
-                    )
+                            : msg,
+                    ),
                 );
-            } else {
-                let errorMessage = 'Unknown error';
-                if (error instanceof Error) {
-                    errorMessage = error.message;
-                } else if (typeof error === 'object' && error !== null) {
-                    try {
-                        errorMessage = JSON.stringify(error);
-                    } catch {
-                        errorMessage = String(error);
-                    }
-                } else if (error) {
+            });
+
+            // Note: We're not throwing here, the stream is async and handled by events.
+            // Catch below is only for immediate sync errors.
+        } catch (error: unknown) {
+            let errorMessage = 'Unknown error';
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === 'object' && error !== null) {
+                try {
+                    errorMessage = JSON.stringify(error);
+                } catch {
                     errorMessage = String(error);
                 }
+            } else if (error) {
+                errorMessage = String(error);
+            }
 
-                // If Gemini returns 503, translate it to a friendly message in Vietnamese
-                if (errorMessage.includes('503') || errorMessage.toLowerCase().includes('service unavailable')) {
-                    errorMessage = 'Dịch vụ của Google Gemini tạm thời bị quá tải (Lỗi 503). Vui lòng gửi lại tin nhắn hoặc thử lại sau vài giây.';
-                }
+            // If Gemini returns 503, translate it to a friendly message in Vietnamese
+            if (errorMessage.includes('503') || errorMessage.toLowerCase().includes('service unavailable')) {
+                errorMessage =
+                    'Dịch vụ của Google Gemini tạm thời bị quá tải (Lỗi 503). Vui lòng gửi lại tin nhắn hoặc thử lại sau vài giây.';
+            }
 
-                const hasPartialContent = fullReply.trim().length > 0;
-                const errorDisplay = hasPartialContent
-                    ? `${fullReply}\n\n[⚠️ Lỗi kết nối giữa chừng: ${errorMessage}]`
-                    : `Lỗi khi gọi AI: ${errorMessage}`;
+            const hasPartialContent = fullReply.trim().length > 0;
+            const errorDisplay = hasPartialContent
+                ? `${fullReply}\n\n[⚠️ Lỗi kết nối giữa chừng: ${errorMessage}]`
+                : `Lỗi khi gọi AI: ${errorMessage}`;
 
-                if (assistantMessage) {
-                    setCurrentMessages((prev) =>
-                        prev.map((msg) => (msg.id === assistantMessage!.id ? { ...msg, content: errorDisplay } : msg))
-                    );
-                    await saveMessage({ ...assistantMessage, content: errorDisplay });
-                } else {
-                    const errorMsg: Message = {
-                        id: createId(),
-                        characterId: selectedCharacter.id,
-                        role: 'assistant',
-                        content: errorDisplay,
-                    };
-                    setCurrentMessages((prev) => [...prev, errorMsg]);
-                    await saveMessage(errorMsg);
-                }
+            if (assistantMessage) {
+                setCurrentMessages((prev) =>
+                    prev.map((msg) => (msg.id === assistantMessage!.id ? { ...msg, content: errorDisplay } : msg)),
+                );
+                await saveMessage({ ...assistantMessage, content: errorDisplay });
+            } else {
+                const errorMsg: Message = {
+                    id: createId(),
+                    characterId: selectedCharacter.id,
+                    role: 'assistant',
+                    content: errorDisplay,
+                };
+                setCurrentMessages((prev) => [...prev, errorMsg]);
+                await saveMessage(errorMsg);
             }
         } finally {
             setIsStreaming(false);

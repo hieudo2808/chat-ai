@@ -40,7 +40,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
-        
+
         setFormData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : type === 'number' ? (value === '' ? undefined : Number(value)) : value,
@@ -50,7 +50,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
     const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const provider = e.target.value as AiModelProfileInput['provider'];
         const preset = PROVIDER_PRESETS[provider];
-        
+
         setFormData(prev => ({
             ...prev,
             provider,
@@ -67,82 +67,168 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
     return (
         <form onSubmit={handleSubmit} className="model-form-pane">
             <h3 style={{ marginTop: 0, marginBottom: '20px' }}>
-                {mode === 'create' ? 'Add New Model' : 'Edit Model'}
+                {mode === 'create' ? '➕ Thêm Model mới' : '✏️ Chỉnh sửa Model'}
             </h3>
-            
-            <div className="form-row">
-                <label className="form-group">
-                    Name
-                    <input required type="text" name="name" value={formData.name} onChange={handleChange} placeholder="VD: GPT-4o-Mini hoặc Ollama Llama3" />
-                </label>
 
-                <label className="form-group">
-                    Provider
-                    <select name="provider" value={formData.provider} onChange={handleProviderChange}>
-                        <option value="openrouter">OpenRouter</option>
-                        <option value="openai">OpenAI</option>
-                        <option value="ollama">Ollama (Local)</option>
-                        <option value="lmstudio">LM Studio (Local)</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                </label>
+            {/* Tên profile & Provider */}
+            <div className="form-group">
+                <label>Tên hiển thị</label>
+                <input
+                    required
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="VD: GPT-4o-Mini hoặc Ollama Llama3"
+                />
             </div>
 
-            <label className="form-group">
-                Base URL
-                <input required type="url" name="baseUrl" value={formData.baseUrl} onChange={handleChange} placeholder="https://api.openai.com/v1" />
-            </label>
+            <div className="form-group">
+                <label>Nhà cung cấp (Provider)</label>
+                <select name="provider" value={formData.provider} onChange={handleProviderChange}>
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="ollama">Ollama (Local)</option>
+                    <option value="lmstudio">LM Studio (Local)</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
 
-            <label className="form-group">
-                API Key (Optional for local)
-                <input type="password" name="apiKey" value={formData.apiKey || ''} onChange={handleChange} placeholder="sk-..." />
-            </label>
+            <div className="form-group">
+                <label>Base URL</label>
+                <input
+                    required
+                    type="url"
+                    name="baseUrl"
+                    value={formData.baseUrl}
+                    onChange={handleChange}
+                    placeholder="https://api.openai.com/v1"
+                />
+            </div>
 
-            <label className="form-group">
-                Model Name
-                <input required type="text" name="modelName" value={formData.modelName} onChange={handleChange} placeholder="VD: gpt-4o-mini hoặc google/gemini-flash" />
-            </label>
+            <div className="form-group">
+                <label>API Key <span style={{ color: '#71717a', fontWeight: 400 }}>(để trống nếu dùng local)</span></label>
+                <input
+                    type="password"
+                    name="apiKey"
+                    value={formData.apiKey || ''}
+                    onChange={handleChange}
+                    placeholder="sk-..."
+                />
+            </div>
 
+            <div className="form-group">
+                <label>Tên Model</label>
+                <input
+                    required
+                    type="text"
+                    name="modelName"
+                    value={formData.modelName}
+                    onChange={handleChange}
+                    placeholder="VD: gpt-4o-mini, google/gemini-flash-1.5..."
+                />
+            </div>
+
+            {/* Hyperparameters – 2 cột giống LLM Defaults */}
             <div className="form-row">
-                <label className="form-group">
-                    Temperature ({formData.temperature})
-                    <input type="range" name="temperature" min="0" max="2" step="0.1" value={formData.temperature} onChange={handleChange} />
-                </label>
-                <label className="form-group">
-                    Max Tokens
-                    <input type="number" name="maxTokens" min="1" value={formData.maxTokens || ''} onChange={handleChange} />
-                </label>
+                <div className="form-group">
+                    <label>Temperature</label>
+                    <input
+                        type="number"
+                        name="temperature"
+                        min="0"
+                        max="2"
+                        step="0.1"
+                        value={formData.temperature}
+                        onChange={handleChange}
+                        placeholder="0.8"
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Max Tokens</label>
+                    <input
+                        type="number"
+                        name="maxTokens"
+                        min="1"
+                        value={formData.maxTokens || ''}
+                        onChange={handleChange}
+                        placeholder="1024"
+                    />
+                </div>
             </div>
 
             <div className="form-row">
-                <label className="form-group">
-                    Top P
-                    <input type="number" name="topP" min="0" max="1" step="0.05" value={formData.topP ?? ''} onChange={handleChange} placeholder="1.0" />
-                </label>
-                <label className="form-group">
-                    Repetition Penalty
-                    <input type="number" name="repetitionPenalty" min="0" max="2" step="0.05" value={formData.repetitionPenalty ?? ''} onChange={handleChange} placeholder="1.0" />
-                </label>
+                <div className="form-group">
+                    <label>Top P</label>
+                    <input
+                        type="number"
+                        name="topP"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={formData.topP ?? ''}
+                        onChange={handleChange}
+                        placeholder="1.0"
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Repetition Penalty</label>
+                    <input
+                        type="number"
+                        name="repetitionPenalty"
+                        min="0"
+                        max="2"
+                        step="0.05"
+                        value={formData.repetitionPenalty ?? ''}
+                        onChange={handleChange}
+                        placeholder="1.0"
+                    />
+                </div>
             </div>
 
-            <div className="form-group" style={{ gap: '16px', flexDirection: 'row', flexWrap: 'wrap', margin: '20px 0' }}>
-                <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
-                    <input type="checkbox" name="supportsStreaming" checked={formData.supportsStreaming} onChange={handleChange} />
-                    Supports Streaming
+            {/* Checkboxes với giải thích rõ ràng */}
+            <div className="model-form-checkboxes">
+                <label className="model-form-checkbox-item" title="Model hỗ trợ phản hồi từng từ theo thời gian thực (streaming). Nên bật với hầu hết các API hiện đại.">
+                    <input
+                        type="checkbox"
+                        name="supportsStreaming"
+                        checked={formData.supportsStreaming}
+                        onChange={handleChange}
+                    />
+                    <span className="checkbox-text">
+                        <strong>Hỗ trợ Streaming</strong>
+                        <span className="checkbox-hint">Hiển thị phản hồi từng từ theo thời gian thực</span>
+                    </span>
                 </label>
-                <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
-                    <input type="checkbox" name="supportsJsonMode" checked={formData.supportsJsonMode} onChange={handleChange} />
-                    Supports JSON Mode
+                <label className="model-form-checkbox-item" title="Model hỗ trợ trả về JSON có cấu trúc. Dùng cho tính năng AI Generate nhân vật.">
+                    <input
+                        type="checkbox"
+                        name="supportsJsonMode"
+                        checked={formData.supportsJsonMode}
+                        onChange={handleChange}
+                    />
+                    <span className="checkbox-text">
+                        <strong>Hỗ trợ JSON Mode</strong>
+                        <span className="checkbox-hint">Cần thiết cho AI Generate nhân vật</span>
+                    </span>
                 </label>
-                <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
-                    <input type="checkbox" name="isDefault" checked={formData.isDefault} onChange={handleChange} />
-                    Set as Default
+                <label className="model-form-checkbox-item" title="Đặt model này làm mặc định cho mọi cuộc trò chuyện. Sẽ ghi đè cấu hình LLM Defaults.">
+                    <input
+                        type="checkbox"
+                        name="isDefault"
+                        checked={formData.isDefault}
+                        onChange={handleChange}
+                    />
+                    <span className="checkbox-text">
+                        <strong>Đặt làm Model mặc định</strong>
+                        <span className="checkbox-hint">Dùng cho tất cả cuộc trò chuyện, ghi đè LLM Defaults</span>
+                    </span>
                 </label>
             </div>
 
             <div className="modal-actions" style={{ marginTop: '24px' }}>
-                <button type="button" onClick={onCancel} className="secondary">Cancel</button>
-                <button type="submit">Save</button>
+                <button type="button" onClick={onCancel} className="secondary">Hủy</button>
+                <button type="submit">{mode === 'create' ? 'Thêm Model' : 'Lưu thay đổi'}</button>
             </div>
         </form>
     );

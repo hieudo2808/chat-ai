@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type Settings = {
     apiKey: string;
@@ -8,6 +8,7 @@ export type Settings = {
     maxTokens?: number;
     topP?: number;
     repetitionPenalty?: number;
+    responseFormat?: 'json_object';
 };
 
 export async function streamChatCompletion({
@@ -119,6 +120,7 @@ async function streamGemini(
         temperature: settings.temperature ?? 0.8,
         maxOutputTokens: settings.maxTokens ?? 1024,
         ...(settings.topP !== undefined ? { topP: settings.topP } : {}),
+        ...(settings.responseFormat === 'json_object' ? { responseMimeType: 'application/json' } : {})
     };
 
     body.safetySettings = [
@@ -177,6 +179,7 @@ async function streamOpenAI(
             temperature: settings.temperature ?? 0.8,
             max_tokens: settings.maxTokens ?? 1024,
             ...(settings.topP !== undefined ? { top_p: settings.topP } : {}),
+            ...(settings.responseFormat === 'json_object' ? { response_format: { type: 'json_object' } } : {}),
             ...(settings.repetitionPenalty !== undefined && settings.repetitionPenalty !== 1
                 ? { frequency_penalty: settings.repetitionPenalty }
                 : {}),

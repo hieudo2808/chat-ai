@@ -1,0 +1,19 @@
+name = "chat-ai-worker"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chat-ai-db"
+database_id = "46aa1932-c353-424d-af6a-21ac68feb399"
+migrations_dir = "migrations"
+
+[durable_objects]
+bindings = [
+  { name = "CHAT_ROOM", class_name = "ChatRoomDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatRoomDO"]

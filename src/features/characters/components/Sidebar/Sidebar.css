@@ -9,6 +9,9 @@
 
 .sidebar-header {
     padding: 22px 20px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .sidebar-header h1 {
@@ -130,8 +133,85 @@
     filter: none;
 }
 
+.sidebar-auth-panel {
+    padding: 16px;
+    border-top: 1px solid #e4e4e7;
+    background: #f4f4f5;
+}
+
+.sidebar-sync-container {
+    margin-top: 8px;
+}
+
+.sidebar-close-button {
+    display: none;
+    font-size: 28px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+}
+
+.sidebar-close-button:hover {
+    color: var(--text-primary);
+}
+
+.sidebar-auth-guest,
+.sidebar-auth-user {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-auth-guest-title {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.sidebar-auth-user-name {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.sidebar-auth-logout-btn {
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 500;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.sidebar-auth-logout-btn:hover {
+    background: var(--danger-light);
+    border-color: var(--danger-border);
+}
+
 @media (max-width: 860px) {
     .sidebar {
-        display: none;
+        position: fixed;
+        top: 0;
+        left: -320px;
+        width: 320px;
+        height: 100dvh;
+        z-index: 1000;
+        transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    .sidebar.mobile-open {
+        left: 0;
+    }
+    
+    .sidebar-close-button {
+        display: block;
     }
 }
