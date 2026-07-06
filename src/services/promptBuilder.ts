@@ -7,7 +7,7 @@ const PROMPT_CONFIG = {
     includeFirstMessageInSystem: false,
 };
 
-function replacePlaceholders(
+export function replacePlaceholders(
     text: string | undefined,
     characterName: string,
     userName = 'User',
@@ -23,7 +23,6 @@ function replacePlaceholders(
         .replaceAll('{{personality}}', character?.personality || '')
         .replaceAll('{{scenario}}', character?.scenario || '')
         .replaceAll('{{examples}}', character?.exampleMessages || '')
-        .replaceAll('{{jailbreak}}', settings?.globalJailbreak || '')
         .replaceAll('\r\n', '\n')
         .trim();
 }

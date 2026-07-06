@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import type { Settings } from '~/types';
-import { getSettings, saveSettings, DEFAULT_JAILBREAK } from '~/services/settingsService';
+import { getSettings, saveSettings } from '~/services/settingsService';
 
 const defaultSettings: Settings = {
     id: 'ai_settings',
+    userName: 'Guest',
     apiKey: '',
     baseUrl: 'https://api.openai.com/v1',
     modelName: 'gpt-4o-mini',
     temperature: 0.8,
     maxTokens: 1024,
-    globalJailbreak: DEFAULT_JAILBREAK,
+    topP: 1,
+    repetitionPenalty: 1,
     updatedAt: Date.now(),
 };
 

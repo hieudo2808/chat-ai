@@ -60,7 +60,7 @@ export const DEFAULT_PROMPTS: PromptConfig[] = [
         id: 'jailbreak',
         name: 'Bộ lọc an toàn',
         role: 'system',
-        content: '{{jailbreak}}',
+        content: DEFAULT_JAILBREAK,
         enabled: true,
         injectionDepth: 50,
         injectionOrder: 100,
@@ -89,7 +89,8 @@ export async function getSettings(): Promise<Settings> {
         modelName: '',
         temperature: 0.8,
         maxTokens: 1024,
-        globalJailbreak: DEFAULT_JAILBREAK,
+        topP: 1,
+        repetitionPenalty: 1,
         prompts: DEFAULT_PROMPTS,
         updatedAt: Date.now(),
     };

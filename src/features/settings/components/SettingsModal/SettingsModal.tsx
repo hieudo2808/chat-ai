@@ -3,6 +3,7 @@ import { Modal } from '~/components/ui/Modal/Modal';
 import type { Settings, PromptConfig } from '~/types';
 import { DEFAULT_PROMPTS } from '~/services/settingsService';
 import { ModelManagementTab } from '~/features/models/components/ModelManagementTab';
+import { useModelProfiles } from '~/features/models/hooks/useModelProfiles';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -26,6 +27,8 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
     });
     const [activeTab, setActiveTab] = useState<'profile' | 'general' | 'prompts' | 'models'>('profile');
     const [editingPrompt, setEditingPrompt] = useState<PromptConfig | null>(null);
+    const { models } = useModelProfiles();
+    const activeDefaultModel = models.find((m) => m.isDefault);
 
     const updateField = (field: keyof Settings, value: unknown) => {
         setLocalSettings({ ...localSettings, [field]: value });
@@ -124,6 +127,11 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
 
                 {activeTab === 'general' && (
                     <div>
+                        {activeDefaultModel && (
+                            <div className="warning-banner" style={{ background: '#fffbeb', border: '1px solid #fef3c7', padding: '12px', borderRadius: '8px', marginBottom: '16px', color: '#b45309', fontSize: '13px', lineHeight: '1.4' }}>
+                                ⚠️ Cấu hình mặc định đang bị ghi đè bởi model <strong>{activeDefaultModel.name}</strong> ({activeDefaultModel.modelName}) trong tab <strong>Quản lý LLM</strong>. Các thay đổi tại đây (ngoại trừ Prompt Jailbreak) sẽ không có hiệu lực khi chat.
+                            </div>
+                        )}
                         <div className="form-group">
                             <label>Cấu hình nhanh (Quick Presets)</label>
                             <div className="preset-buttons">
@@ -143,15 +151,6 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                         {renderInput('API Key', 'apiKey', 'password', 'sk-...')}
                         {renderInput('Base URL', 'baseUrl', 'text', 'https://...')}
                         {renderInput('Tên Model mặc định', 'modelName', 'text', 'gpt-4o-mini, gemini-1.5-flash...')}
-                        
-                        <div className="form-group">
-                            <label>Prompt Jailbreak toàn cục</label>
-                            <textarea
-                                placeholder="Các chỉ thị ép định dạng chat hoặc lọc nội dung áp dụng cho mọi cuộc trò chuyện..."
-                                value={localSettings.globalJailbreak || ''}
-                                onChange={(e) => updateField('globalJailbreak', e.target.value)}
-                            />
-                        </div>
 
                         <div className="form-row">
                             {renderInput('Temperature', 'temperature', 'number', '', '0', '2', '0.1')}
