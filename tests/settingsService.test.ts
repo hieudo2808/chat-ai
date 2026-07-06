@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
 import { describe, it, expect } from 'vitest';
 import { getSettings, saveSettings, DEFAULT_JAILBREAK } from '../src/services/settingsService';
 
@@ -6,7 +7,10 @@ describe('SettingsService', () => {
         const settings = await getSettings();
         expect(settings.id).toBe('ai_settings');
         expect(settings.baseUrl).toBe('https://openrouter.ai/api/v1');
-        expect(settings.globalJailbreak).toBe(DEFAULT_JAILBREAK);
+        // globalJailbreak field removed: jailbreak is now a PromptConfig in settings.prompts
+        const jailbreakPrompt = settings.prompts?.find(p => p.id === 'jailbreak');
+        expect(jailbreakPrompt).toBeDefined();
+        expect(jailbreakPrompt?.content).toBe(DEFAULT_JAILBREAK);
     });
 
     it('saves and retrieves custom settings', async () => {

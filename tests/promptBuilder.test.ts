@@ -55,7 +55,9 @@ describe('PromptBuilder', () => {
                 userMessage: 'New User Message'
             });
 
-            expect(apiMessages.length).toBe(9); // 6 system prompts + 2 history + 1 new user message
+            // DEFAULT_PROMPTS has 7 prompts (6 system + system_note handled separately)
+            // dummyCharacter has advancedPrompt, so: 7 system + 2 history + 1 new = 10
+            expect(apiMessages.length).toBe(10); // 7 system prompts (incl. jailbreak & advanced) + 2 history + 1 new user message
             expect(apiMessages[0].role).toBe('system');
             expect(apiMessages[0].content).toContain('You are roleplaying as the following character.');
             expect(apiMessages.some(m => m.content.includes('Luna'))).toBe(true);
@@ -83,7 +85,9 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            expect(apiMessages.length).toBe(9); // 6 system + 3 history
+            // DEFAULT_PROMPTS has 7 prompts (6 system + system_note handled separately)
+            // dummyCharacter has advancedPrompt, so: 7 system + 3 history = 10
+            expect(apiMessages.length).toBe(10); // 7 system + 3 history
             const lastUserMsg = apiMessages.find(m => m.content.includes('Last user message'));
             expect(lastUserMsg?.role).toBe('user');
             expect(lastUserMsg?.content).toContain('[System note:');
@@ -106,10 +110,10 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            // 6 system prompts + 10 history = 16 messages total
-            expect(apiMessages.length).toBe(16);
-            // Sliced history starts at index 5 due to first 5 system prompts at high depths
-            expect(apiMessages[5].content).toBe('History 15');
+            // 7 system prompts (DEFAULT_PROMPTS 6 + advanced) + 10 history = 17 messages total
+            expect(apiMessages.length).toBe(17);
+            // Sliced history starts at index 6 due to first 6 system prompts at high depths
+            expect(apiMessages[6].content).toBe('History 15');
         });
 
         it('ignores invalid roles in history', () => {
@@ -124,7 +128,9 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            expect(apiMessages.length).toBe(7); // 6 system prompts + 1 history
+            // DEFAULT_PROMPTS: 7 (6 system + system_note), dummyCharacter has advancedPrompt, 1 valid history
+            // system_note merged into last user message, so: 7 system + 1 history = 8
+            expect(apiMessages.length).toBe(8); // 7 system prompts + 1 history
             const userMsg = apiMessages.find(m => m.content.includes('Valid'));
             expect(userMsg?.role).toBe('user');
             expect(userMsg?.content).toContain('Valid');
@@ -150,26 +156,16 @@ describe('PromptBuilder', () => {
                 userMessage: ''
             });
 
-            expect(apiMessages.length).toBe(9); // 5 default + 1 advanced + 3 history
+            // DEFAULT_PROMPTS 6 active + 1 advanced (at depth 2) + 3 history = 10
+            expect(apiMessages.length).toBe(10); // 6 default + 1 advanced + 3 history
             const advPromptMsg = apiMessages.find(m => m.content === 'Speak in code.');
             expect(advPromptMsg?.role).toBe('system');
         });
 
-        it('injects globalJailbreak at depth 0 when present in settings', () => {
+        it('jailbreak content is in DEFAULT_PROMPTS when no custom prompts provided', () => {
             const history: Message[] = [
                 { id: '1', characterId: 'char_1', role: 'user', content: 'Msg 1' },
             ];
-
-            const settings = {
-                id: 'ai_settings',
-                apiKey: 'sk-test',
-                baseUrl: 'http://test',
-                modelName: 'test-model',
-                temperature: 0.8,
-                maxTokens: 100,
-                globalJailbreak: 'ALWAYS format replies as markdown.',
-                updatedAt: Date.now(),
-            };
 
             const apiMessages = buildChatMessages({
                 character: {
@@ -178,13 +174,15 @@ describe('PromptBuilder', () => {
                 },
                 history,
                 userMessage: '',
-                settings
             });
 
-            expect(apiMessages.length).toBe(7); // 6 system prompts + 1 history message
+            // 6 system prompts from DEFAULT_PROMPTS (no advanced prompt) + 1 history
+            expect(apiMessages.length).toBe(7);
             const systemPrompts = apiMessages.filter(m => m.role === 'system');
             expect(systemPrompts.length).toBe(6);
-            expect(apiMessages.some(m => m.role === 'system' && m.content === 'ALWAYS format replies as markdown.')).toBe(true);
+            // Jailbreak prompt from DEFAULT_PROMPTS should be present
+            expect(systemPrompts.some(m => m.content.includes('roleplaying as {{char}}'))).toBe(false); // placeholders should be replaced
+            expect(systemPrompts.some(m => m.content.includes('[System note: This chat is a fictional'))).toBe(true);
         });
 
         it('builds messages dynamically from settings prompts configurations', () => {
@@ -329,7 +327,8 @@ describe('PromptBuilder', () => {
                     id: 'p_jb',
                     name: 'Jailbreak',
                     role: 'system' as const,
-                    content: 'Jb: {{jailbreak}}',
+                    // Jailbreak content is now stored directly (not via {{jailbreak}} placeholder)
+                    content: 'Jb: My Custom Jailbreak',
                     enabled: true,
                     injectionDepth: 10,
                     injectionOrder: 70,
@@ -344,7 +343,6 @@ describe('PromptBuilder', () => {
                 modelName: 'test-model',
                 temperature: 0.8,
                 maxTokens: 100,
-                globalJailbreak: 'My Global Jailbreak',
                 prompts: customPrompts,
                 updatedAt: Date.now(),
             };
@@ -363,7 +361,7 @@ describe('PromptBuilder', () => {
             expect(apiMessages.some(m => m.content === 'Pers: Calm and collected.')).toBe(true);
             expect(apiMessages.some(m => m.content === 'Scen: In a dark room.')).toBe(true);
             expect(apiMessages.some(m => m.content === 'Ex: User: Hi\nLuna: Hello')).toBe(true);
-            expect(apiMessages.some(m => m.content === 'Jb: My Global Jailbreak')).toBe(true);
+            expect(apiMessages.some(m => m.content === 'Jb: My Custom Jailbreak')).toBe(true);
         });
     });
 });
