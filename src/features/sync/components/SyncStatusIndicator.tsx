@@ -6,7 +6,7 @@ import { useAuthStore } from '~/stores/authStore';
 export const SyncStatusIndicator: React.FC = () => {
     const { isAuthenticated } = useAuthStore();
     const { isOnline } = useNetworkStatus();
-    const { sync, isSyncing } = useSync();
+    const { sync } = useSync();
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
@@ -27,10 +27,6 @@ export const SyncStatusIndicator: React.FC = () => {
     }, [isAuthenticated, isOnline, sync]);
 
     if (!isAuthenticated) return null;
-
-    if (isSyncing) {
-        return <div className="sync-status-indicator">Syncing...</div>;
-    }
 
     return null;
 };
