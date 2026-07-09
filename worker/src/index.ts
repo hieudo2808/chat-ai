@@ -1,6 +1,7 @@
 import { handleGuestLogin, handleAuthMe } from './routes/auth';
 import { handleChatStream } from './routes/chat';
 import { handleSyncPush, handleSyncPull } from './routes/sync';
+import { handleCharacterGenerateStream } from './routes/characterGenerate';
 export { ChatRoomDO } from './durable_objects/ChatRoomDO';
 
 export interface Env {
@@ -49,6 +50,15 @@ export default {
 
         if (url.pathname === '/chat/stream' && request.method === 'POST') {
             const res = await handleChatStream(request, env);
+            const newResponse = new Response(res.body, res);
+            for (const [k, v] of Object.entries(corsHeaders)) {
+                newResponse.headers.set(k, v);
+            }
+            return newResponse;
+        }
+
+        if (url.pathname === '/generate-character/stream' && request.method === 'POST') {
+            const res = await handleCharacterGenerateStream(request, env);
             const newResponse = new Response(res.body, res);
             for (const [k, v] of Object.entries(corsHeaders)) {
                 newResponse.headers.set(k, v);
