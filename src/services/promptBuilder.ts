@@ -12,7 +12,6 @@ export function replacePlaceholders(
     characterName: string,
     userName = 'User',
     character?: Character,
-    settings?: Settings
 ): string {
     if (!text) return '';
 
@@ -152,7 +151,7 @@ export function buildChatMessages({
     const systemNoteIdx = activePrompts.findIndex((p) => p.id === 'system_note');
     if (systemNoteIdx > -1) {
         const p = activePrompts[systemNoteIdx];
-        systemNoteContent = replacePlaceholders(p.content, characterName, userName, character, settings);
+        systemNoteContent = replacePlaceholders(p.content, characterName, userName, character);
         activePrompts.splice(systemNoteIdx, 1);
     }
 
@@ -163,7 +162,7 @@ export function buildChatMessages({
         .slice(-PROMPT_CONFIG.maxHistoryMessages)
         .map((msg) => ({
             role: msg.role as 'user' | 'assistant',
-            content: replacePlaceholders(msg.content, characterName, userName, character, settings),
+            content: replacePlaceholders(msg.content, characterName, userName, character),
         }));
 
     const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [...recentHistory];
@@ -172,7 +171,7 @@ export function buildChatMessages({
     if (userMessage.trim()) {
         messages.push({
             role: 'user',
-            content: replacePlaceholders(userMessage.trim(), characterName, userName, character, settings),
+            content: replacePlaceholders(userMessage.trim(), characterName, userName, character),
         });
     }
 
@@ -190,7 +189,7 @@ export function buildChatMessages({
     });
 
     for (const prompt of activePrompts) {
-        const resolvedContent = replacePlaceholders(prompt.content, characterName, userName, character, settings);
+        const resolvedContent = replacePlaceholders(prompt.content, characterName, userName, character);
         if (!resolvedContent.trim()) continue;
 
         // Calculate insert index relative to original length
