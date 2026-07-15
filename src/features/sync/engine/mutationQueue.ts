@@ -91,8 +91,10 @@ export async function addMutation(params: {
 
 export async function getPendingMutations(): Promise<OfflineMutation[]> {
     const db = await dbPromise;
-    const pending = await db.getAllFromIndex('offline_mutations', 'status', 'pending');
-    const failed = await db.getAllFromIndex('offline_mutations', 'status', 'failed');
+    const [pending, failed] = await Promise.all([
+        db.getAllFromIndex('offline_mutations', 'status', 'pending'),
+        db.getAllFromIndex('offline_mutations', 'status', 'failed')
+    ]);
 
     const maxRetries = 5;
     const eligibleFailed = failed.filter((m) => m.retryCount < maxRetries);

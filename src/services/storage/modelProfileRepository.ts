@@ -1,6 +1,5 @@
 import { dbPromise } from '../../db/appDb';
 import type { AiModelProfile } from '../../types';
-import type { SyncResult } from '../../features/sync/services/syncApi';
 import { createId } from '../../utils/id';
 import { addMutation } from '../../features/sync/engine/mutationQueue';
 
@@ -56,32 +55,4 @@ export async function updateModelProfile(id: string, patch: Partial<AiModelProfi
     });
 
     return updated;
-}
-
-export async function getModelProfile(id: string): Promise<AiModelProfile | undefined> {
-    const db = await dbPromise;
-    return db.get('models', id);
-}
-
-export async function markSyncedModelProfile(id: string, result: SyncResult): Promise<void> {
-    const db = await dbPromise;
-    const existing = await db.get('models', id);
-    if (!existing) return;
-
-    if (result.status === 'synced') {
-        const updated: AiModelProfile = {
-            ...existing,
-            syncStatus: 'synced',
-            serverId: result.serverId || existing.serverId,
-            serverUpdatedAt: result.serverUpdatedAt,
-        };
-        await db.put('models', updated);
-    } else {
-        const updated: AiModelProfile = {
-            ...existing,
-            syncStatus: 'sync_error',
-            syncError: result.error,
-        };
-        await db.put('models', updated);
-    }
 }

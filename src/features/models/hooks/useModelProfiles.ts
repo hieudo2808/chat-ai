@@ -11,9 +11,9 @@ export function useModelProfiles() {
         try {
             const data = await modelService.getModelProfiles();
             setModels(data);
+            setIsLoaded(true);
         } catch (error) {
             console.error('Failed to load models', error);
-        } finally {
             setIsLoaded(true);
         }
     }, []);

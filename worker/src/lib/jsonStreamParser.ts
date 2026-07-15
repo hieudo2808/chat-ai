@@ -74,7 +74,7 @@ export class JsonStreamToNdjsonTransformer {
             if (newEvents.length > 0) {
                 events.push(...newEvents);
                 // deeply copy parsed for next comparison
-                this.lastParsedObject = JSON.parse(JSON.stringify(parsed));
+                this.lastParsedObject = structuredClone(parsed);
             }
         }
         

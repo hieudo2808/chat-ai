@@ -54,11 +54,19 @@ export function ImportCharacterModal({ onClose, onImport }: ImportCharacterModal
     return (
         <Modal title="Nhập thẻ nhân vật (Import Card)" onClose={onClose}>
             <div 
+                role="button"
+                tabIndex={0}
                 className={`drop-zone ${isDragging ? 'dragging' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                    }
+                }}
             >
                 <input 
                     type="file" 

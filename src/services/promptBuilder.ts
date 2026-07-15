@@ -157,8 +157,7 @@ export function buildChatMessages({
 
     // 3. Setup history messages (recent history, max 10 messages)
     const recentHistory = history
-        .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
-        .filter((msg) => msg.content?.trim())
+        .filter((msg) => (msg.role === 'user' || msg.role === 'assistant') && msg.content?.trim())
         .slice(-PROMPT_CONFIG.maxHistoryMessages)
         .map((msg) => ({
             role: msg.role as 'user' | 'assistant',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 type CharacterIdeaInputProps = {
     value: string;
@@ -8,12 +8,14 @@ type CharacterIdeaInputProps = {
 };
 
 export const CharacterIdeaInput: React.FC<CharacterIdeaInputProps> = ({ value, disabled, onChange, onGenerate }) => {
+    const inputId = useId();
     return (
         <div className="char-gen-idea-container">
-            <label>
+            <label htmlFor={inputId}>
                 Ý tưởng nhân vật
             </label>
             <textarea
+                id={inputId}
                 placeholder="Ví dụ: Một nữ kiếm sĩ cổ trang là android, lạnh lùng nhưng dịu dàng..."
                 value={value}
                 onChange={(e) => onChange(e.target.value)}

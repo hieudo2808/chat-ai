@@ -4,18 +4,25 @@ export async function handleSyncPush(request: Request, env: Env): Promise<Respon
     try {
         const body: any = await request.json();
         const changes = body.changes || [];
-        const results = [];
+        const results: {
+            localId: string;
+            status: string;
+            error?: string;
+            serverId?: string;
+            serverUpdatedAt?: string;
+        }[] = [];
         const now = new Date().toISOString();
 
-        await Promise.all(changes.map(async (change: any) => {
-            try {
-                if (change.entity === 'character') {
-                    if (change.operation === 'create' || change.operation === 'update') {
-                        const id = change.serverId || change.localId;
-                        const data = change.data;
+        await Promise.all(
+            changes.map(async (change: any) => {
+                try {
+                    if (change.entity === 'character') {
+                        if (change.operation === 'create' || change.operation === 'update') {
+                            const id = change.serverId || change.localId;
+                            const data = change.data;
 
-                        await env.DB.prepare(
-                            `INSERT INTO characters (id, user_id, name, avatar, description, personality, scenario, first_message, updated_at) 
+                            await env.DB.prepare(
+                                `INSERT INTO characters (id, user_id, name, avatar, description, personality, scenario, first_message, updated_at) 
                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                              ON CONFLICT(id) DO UPDATE SET 
                                 name=excluded.name, 
@@ -25,37 +32,38 @@ export async function handleSyncPush(request: Request, env: Env): Promise<Respon
                                 scenario=excluded.scenario,
                                 first_message=excluded.first_message,
                                 updated_at=excluded.updated_at`,
-                        )
-                            .bind(
-                                id,
-                                'user-1', // Mock user for now since auth isn't fully passed in this test yet
-                                data.name || '',
-                                data.avatar || '',
-                                data.description || '',
-                                data.personality || '',
-                                data.scenario || '',
-                                data.firstMessage || '',
-                                now,
                             )
-                            .run();
+                                .bind(
+                                    id,
+                                    'user-1', // Mock user for now since auth isn't fully passed in this test yet
+                                    data.name || '',
+                                    data.avatar || '',
+                                    data.description || '',
+                                    data.personality || '',
+                                    data.scenario || '',
+                                    data.firstMessage || '',
+                                    now,
+                                )
+                                .run();
 
-                        results.push({
-                            localId: change.localId,
-                            serverId: id,
-                            status: 'synced',
-                            serverUpdatedAt: now,
-                        });
+                            results.push({
+                                localId: change.localId,
+                                serverId: id,
+                                status: 'synced',
+                                serverUpdatedAt: now,
+                            });
+                        }
                     }
+                    // Handle models similarly...
+                } catch (err) {
+                    results.push({
+                        localId: change.localId,
+                        status: 'error',
+                        error: err instanceof Error ? err.message : 'Unknown error',
+                    });
                 }
-                // Handle models similarly...
-            } catch (err) {
-                results.push({
-                    localId: change.localId,
-                    status: 'error',
-                    error: err instanceof Error ? err.message : 'Unknown error',
-                });
-            }
-        }));
+            }),
+        );
 
         return new Response(JSON.stringify({ results, serverTime: now }), {
             status: 200,

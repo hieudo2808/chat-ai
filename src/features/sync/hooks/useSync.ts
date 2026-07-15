@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { processSyncQueue, syncPull } from '../engine/syncEngine';
 
 export function useSync() {
@@ -6,7 +6,7 @@ export function useSync() {
     const [lastSynced, setLastSynced] = useState<string | null>(null);
     const lastSyncedRef = useRef<string | null>(null);
 
-    const sync = useCallback(async (token: string) => {
+    const sync = async (token: string) => {
         if (!token) return;
         setIsSyncing(true);
         try {
@@ -19,12 +19,12 @@ export function useSync() {
             const now = new Date().toISOString();
             lastSyncedRef.current = now;
             setLastSynced(now);
+            setIsSyncing(false);
         } catch (error) {
             console.error('Sync failed', error);
-        } finally {
             setIsSyncing(false);
         }
-    }, []);
+    };
 
     return {
         isSyncing,

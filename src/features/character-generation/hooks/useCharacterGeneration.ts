@@ -1,4 +1,4 @@
-import { useReducer, useState, useCallback, useRef } from 'react';
+import { useReducer, useState, useRef } from 'react';
 import { characterGenerationReducer, getInitialState } from '../state/characterGenerationReducer';
 import { generateCharacterStream } from '../api/characterGenerationApi';
 import type { GenerateCharacterOptions } from '../api/characterGenerationApi';
@@ -14,7 +14,7 @@ export const useCharacterGeneration = () => {
     const canEdit = state.streamStatus === 'done' || state.streamStatus === 'partial_error' || state.streamStatus === 'cancelled';
     const canSave = canEdit && state.fields.name.value.length > 0;
 
-    const startGeneration = useCallback(async (settings: GenerateCharacterOptions['settings'], language: 'vi' | 'en' = 'vi') => {
+    const startGeneration = async (settings: GenerateCharacterOptions['settings'], language: 'vi' | 'en' = 'vi') => {
         if (!canGenerate) return;
 
         // Reset state before starting
@@ -33,6 +33,7 @@ export const useCharacterGeneration = () => {
                 },
                 signal: abortController.signal
             });
+            abortControllerRef.current = null;
         } catch (error: unknown) {
             if ((error as Error).name === 'AbortError') {
                 // Handled implicitly or by user action
@@ -45,20 +46,19 @@ export const useCharacterGeneration = () => {
                     partial: {} // the reducer keeps current state
                 });
             }
-        } finally {
             abortControllerRef.current = null;
         }
-    }, [idea, canGenerate]);
+    };
 
-    const cancelGeneration = useCallback(() => {
+    const cancelGeneration = () => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
         }
         dispatch({ type: 'error', seq: Date.now(), code: 'CANCELLED', message: 'Cancelled by user', partial: {} });
-    }, []);
+    };
 
-    const updateField = useCallback((path: string, value: unknown) => {
+    const updateField = (path: string, value: unknown) => {
         if (!canEdit) return;
         // Tái sử dụng reducer logic bằng cách dispatch custom action,
         // Nhưng tạm thời reducer chưa có USER_UPDATE_FIELD. 
@@ -71,18 +71,18 @@ export const useCharacterGeneration = () => {
             path,
             value
         });
-    }, [canEdit]);
+    };
 
-    const discardDraft = useCallback(() => {
+    const discardDraft = () => {
         setIdea('');
         // Gửi một action giả để reset.
         dispatch({ type: 'stream_started', seq: 0, streamId: '' });
         dispatch({ type: 'error', seq: 1, code: 'RESET', message: 'Reset', partial: {} }); 
         // Hacky, tốt nhất là gọi 1 action reset thật.
         dispatch({ type: 'reset' });
-    }, []);
+    };
 
-    const getDraftAsCharacter = useCallback((): Omit<Character, 'id' | 'createdAt' | 'updatedAt'> => {
+    const getDraftAsCharacter = (): Omit<Character, 'id' | 'createdAt' | 'updatedAt'> => {
         return {
             name: state.fields.name.value as string,
             avatar: '🤖', // default
@@ -95,7 +95,7 @@ export const useCharacterGeneration = () => {
             tags: state.fields.tags.value as string[],
             exampleMessages: (state.fields.exampleDialogues.value as string[]).join('\n\n'),
         };
-    }, [state.fields]);
+    };
 
     return {
         idea,

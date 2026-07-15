@@ -21,9 +21,9 @@ export function useCharacters() {
                     setSelectedCharacterId(data[0].id);
                 }
                 setCharacters(data);
+                setIsLoaded(true);
             } catch (err) {
                 console.error('Failed to load characters', err);
-            } finally {
                 setIsLoaded(true);
             }
         }

@@ -14,7 +14,7 @@ import { CharacterEditorModal } from '~/features/characters/components/Character
 import { ImportCharacterModal } from '~/features/characters/components/ImportCharacterModal/ImportCharacterModal';
 import { ChatPanel } from '~/features/chat/components/ChatPanel/ChatPanel';
 import { CharacterGenerationPage } from '~/features/character-generation/components/CharacterGenerationPage';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '~/stores/authStore';
 import { NetworkStatusBanner } from '~/features/sync/components/NetworkStatusBanner';
 import { useModelProfiles } from '~/features/models/hooks/useModelProfiles';

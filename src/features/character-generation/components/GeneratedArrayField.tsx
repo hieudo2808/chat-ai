@@ -30,16 +30,16 @@ export const GeneratedArrayField: React.FC<GeneratedArrayFieldProps> = ({
     };
 
     return (
-        <div className={`char-gen-field ${isPending ? 'pending' : ''}`}>
-            <label>
+        <div className={`char-gen-field ${isPending ? 'pending' : ''}`} role="group" aria-labelledby={`char-gen-group-${label}`}>
+            <div id={`char-gen-group-${label}`} style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>{label}</span>
                 {isStreaming && <span className="char-gen-streaming-indicator">Đang tạo... ⏳</span>}
-            </label>
+            </div>
 
             {renderAs === 'tags' && (
                 <div className={`char-gen-tags-container ${isStreaming ? 'streaming' : ''}`}>
                     {values.map((tag, idx) => (
-                        <span key={idx} className="char-gen-tag">
+                        <span key={tag} className="char-gen-tag">
                             {tag}
                             {!disabled && (
                                 <button type="button"
@@ -74,8 +74,9 @@ export const GeneratedArrayField: React.FC<GeneratedArrayFieldProps> = ({
             {renderAs === 'list' && (
                 <div className="char-gen-list-container">
                     {values.map((item, idx) => (
-                        <div key={idx} className="char-gen-list-item">
+                        <div key={item || `empty-${idx}`} className="char-gen-list-item">
                             <textarea
+                                aria-label={`${label} ${idx + 1}`}
                                 value={item}
                                 onChange={(e) => {
                                     if (disabled) return;

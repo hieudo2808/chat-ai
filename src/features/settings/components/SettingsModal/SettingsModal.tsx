@@ -93,8 +93,9 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
             <div style={{ minHeight: '400px', paddingBottom: '20px' }}>
                 {activeTab === 'profile' && (
                     <div className="form-group">
-                        <label>Tên hiển thị (User Name)</label>
+                        <label htmlFor="settings-user-name">Tên hiển thị (User Name)</label>
                         <input
+                            id="settings-user-name"
                             type="text"
                             placeholder="Nhập tên của bạn (dùng cho {{user}})"
                             value={localSettings.userName || ''}
@@ -118,40 +119,45 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                                 </div>
                                 
                                 <div className="form-group">
-                                    <label>Tên Prompt</label>
-                                    <input type="text" value={editingPrompt.name} onChange={(e) => setEditingPrompt({ ...editingPrompt, name: e.target.value })} />
+                                    <label htmlFor="settings-prompt-name">Tên Prompt</label>
+                                    <input id="settings-prompt-name" type="text" value={editingPrompt.name} onChange={(e) => setEditingPrompt({ ...editingPrompt, name: e.target.value })} />
                                 </div>
 
                                 <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                                     <div className="form-group">
-                                        <label>Vai trò (Role)</label>
-                                        <select value={editingPrompt.role} onChange={(e) => setEditingPrompt({ ...editingPrompt, role: e.target.value as "system" | "user" | "assistant" })}>
+                                        <label htmlFor="settings-prompt-role">Vai trò (Role)</label>
+                                        <select id="settings-prompt-role" value={editingPrompt.role} onChange={(e) => setEditingPrompt({ ...editingPrompt, role: e.target.value as "system" | "user" | "assistant" })}>
                                             <option value="system">System</option>
                                             <option value="user">User</option>
                                             <option value="assistant">Assistant</option>
                                         </select>
                                     </div>
                                     <div className="form-group">
-                                        <label>Độ sâu chèn</label>
-                                        <input type="number" min="0" value={editingPrompt.injectionDepth} onChange={(e) => setEditingPrompt({ ...editingPrompt, injectionDepth: Number(e.target.value) })} />
+                                        <label htmlFor="settings-prompt-depth">Độ sâu chèn</label>
+                                        <input id="settings-prompt-depth" type="number" min="0" value={editingPrompt.injectionDepth} onChange={(e) => setEditingPrompt({ ...editingPrompt, injectionDepth: Number(e.target.value) })} />
                                     </div>
                                     <div className="form-group">
-                                        <label>Thứ tự chèn</label>
-                                        <input type="number" min="0" value={editingPrompt.injectionOrder} onChange={(e) => setEditingPrompt({ ...editingPrompt, injectionOrder: Number(e.target.value) })} />
+                                        <label htmlFor="settings-prompt-order">Thứ tự chèn</label>
+                                        <input id="settings-prompt-order" type="number" min="0" value={editingPrompt.injectionOrder} onChange={(e) => setEditingPrompt({ ...editingPrompt, injectionOrder: Number(e.target.value) })} />
                                     </div>
                                 </div>
 
                                 <div className="form-group">
-                                    <label>Nội dung Prompt</label>
-                                    <textarea value={editingPrompt.content} onChange={(e) => setEditingPrompt({ ...editingPrompt, content: e.target.value })} />
+                                    <label htmlFor="settings-prompt-content">Nội dung Prompt</label>
+                                    <textarea id="settings-prompt-content" value={editingPrompt.content} onChange={(e) => setEditingPrompt({ ...editingPrompt, content: e.target.value })} />
                                     
                                     <div className="placeholder-helper">
                                         <strong>Chèn thẻ:</strong>
                                         <div>
                                             {['{{char}}', '{{user}}', '{{description}}', '{{personality}}', '{{scenario}}', '{{examples}}'].map((tag) => (
-                                                <span key={tag} className="placeholder-tag" onClick={() => setEditingPrompt({ ...editingPrompt, content: editingPrompt.content + tag })}>
+                                                <button 
+                                                    key={tag} 
+                                                    type="button"
+                                                    className="placeholder-tag" 
+                                                    onClick={() => setEditingPrompt({ ...editingPrompt, content: editingPrompt.content + tag })}
+                                                >
                                                     {tag}
-                                                </span>
+                                                </button>
                                             ))}
                                         </div>
                                     </div>
@@ -169,9 +175,9 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                                     {prompts.map((prompt) => (
                                         <div key={prompt.id} className="prompt-item-row">
                                             <div className="prompt-item-left">
-                                                <label className="switch">
-                                                    <input type="checkbox" checked={prompt.enabled} onChange={(e) => handleTogglePrompt(prompt.id, e.target.checked)} />
-                                                    <span className="slider"></span>
+                                                <label htmlFor={`prompt-switch-${prompt.id}`} className="switch" aria-label={`Bật/Tắt prompt ${prompt.name}`}>
+                                                    <input id={`prompt-switch-${prompt.id}`} type="checkbox" checked={prompt.enabled} onChange={(e) => handleTogglePrompt(prompt.id, e.target.checked)} aria-label={`Bật/Tắt prompt ${prompt.name}`} />
+                                                    <span className="slider" aria-hidden="true"></span>
                                                 </label>
                                                 <div className="prompt-info">
                                                     <span className="prompt-name">{prompt.name}</span>

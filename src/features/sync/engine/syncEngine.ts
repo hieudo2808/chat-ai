@@ -1,4 +1,4 @@
-import { getPendingMutations, markMutationStatus, type OfflineMutation } from './mutationQueue';
+import { getPendingMutations, markMutationStatus } from './mutationQueue';
 import type { SyncChange } from '../services/syncApi';
 import { pushSync, pullSync } from '../services/syncApi';
 import { resolvePullConflicts } from './conflictResolver';

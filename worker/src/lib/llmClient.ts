@@ -80,7 +80,10 @@ async function streamGemini(
     const historyMsg: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
 
     if (firstHistoryIndex === -1) {
-        globalSystemPrompts = messages.filter((m) => m.role === 'system').map((m) => m.content);
+        globalSystemPrompts = messages.reduce<string[]>((acc, m) => {
+            if (m.role === 'system') acc.push(m.content);
+            return acc;
+        }, []);
     } else {
         for (let i = 0; i < firstHistoryIndex; i++) {
             if (messages[i].role === 'system') {

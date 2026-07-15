@@ -14,9 +14,11 @@ export const ModelTestButton: React.FC<ModelTestButtonProps> = ({ model }) => {
         try {
             await testModelProfile(model);
             setStatus('success');
+            setTimeout(() => {
+                setStatus('idle');
+            }, 3000);
         } catch {
             setStatus('error');
-        } finally {
             setTimeout(() => {
                 setStatus('idle');
             }, 3000);

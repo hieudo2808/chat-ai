@@ -34,13 +34,14 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
         <Modal title={character ? 'Chỉnh sửa nhân vật' : 'Tạo nhân vật mới'} onClose={onClose}>
             <div className="form-row">
                 <div className="form-group avatar-field">
-                    <label>Emoji/Ảnh đại diện (Avatar)</label>
-                    <input type="text" value={form.avatar || ''} onChange={(e) => updateField('avatar', e.target.value)} />
+                    <label htmlFor="char-avatar">Emoji/Ảnh đại diện (Avatar)</label>
+                    <input id="char-avatar" type="text" value={form.avatar || ''} onChange={(e) => updateField('avatar', e.target.value)} />
                 </div>
 
                 <div className="form-group">
-                    <label>Tên nhân vật</label>
+                    <label htmlFor="char-name">Tên nhân vật</label>
                     <input
+                        id="char-name"
                         type="text"
                         placeholder="Nhập tên nhân vật..."
                         value={form.name || ''}
@@ -50,8 +51,9 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
             </div>
 
             <div className="form-group">
-                <label>Mô tả ngắn</label>
+                <label htmlFor="char-description">Mô tả ngắn</label>
                 <input
+                    id="char-description"
                     type="text"
                     placeholder="Nhập mô tả ngắn về nhân vật..."
                     value={form.description || ''}
@@ -60,8 +62,9 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
             </div>
 
             <div className="form-group">
-                <label>Tính cách (Personality)</label>
+                <label htmlFor="char-personality">Tính cách (Personality)</label>
                 <textarea
+                    id="char-personality"
                     placeholder="Ví dụ: Rụt rè, dễ bối rối, thích vẽ tranh mèo..."
                     value={form.personality || ''}
                     onChange={(e) => updateField('personality', e.target.value)}
@@ -69,8 +72,9 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
             </div>
 
             <div className="form-group">
-                <label>Bối cảnh (Scenario)</label>
+                <label htmlFor="char-scenario">Bối cảnh (Scenario)</label>
                 <textarea
+                    id="char-scenario"
                     placeholder="Ví dụ: Gặp gỡ trong phòng học mỹ thuật vắng người..."
                     value={form.scenario || ''}
                     onChange={(e) => updateField('scenario', e.target.value)}
@@ -78,8 +82,9 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
             </div>
 
             <div className="form-group">
-                <label>Lời chào đầu tiên (First Message)</label>
+                <label htmlFor="char-first-message">Lời chào đầu tiên (First Message)</label>
                 <textarea
+                    id="char-first-message"
                     placeholder="Lời thoại đầu tiên của nhân vật khi bắt đầu cuộc trò chuyện..."
                     value={form.firstMessage || ''}
                     onChange={(e) => updateField('firstMessage', e.target.value)}
@@ -87,8 +92,9 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
             </div>
 
             <div className="form-group">
-                <label>Đoạn chat mẫu (Example Messages)</label>
+                <label htmlFor="char-example-messages">Đoạn chat mẫu (Example Messages)</label>
                 <textarea
+                    id="char-example-messages"
                     placeholder="Các mẫu hội thoại mẫu để model bắt chước. Ví dụ:&#10;User: Chào cậu&#10;Char: *ngước nhìn lên, bối rối* X-Xin chào..."
                     value={form.exampleMessages || ''}
                     onChange={(e) => updateField('exampleMessages', e.target.value)}
@@ -97,16 +103,18 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
 
             <div className="form-row" style={{ gridTemplateColumns: '4fr 1fr', alignItems: 'end' }}>
                 <div className="form-group">
-                    <label>System Prompt nâng cao (Advanced Prompt)</label>
+                    <label htmlFor="char-advanced-prompt">System Prompt nâng cao (Advanced Prompt)</label>
                     <textarea
+                        id="char-advanced-prompt"
                         placeholder="Các chỉ thị hệ thống riêng cho nhân vật này..."
                         value={form.advancedPrompt || ''}
                         onChange={(e) => updateField('advancedPrompt', e.target.value)}
                     />
                 </div>
                 <div className="form-group">
-                    <label>Độ sâu (Depth)</label>
+                    <label htmlFor="char-depth">Độ sâu (Depth)</label>
                     <input
+                        id="char-depth"
                         type="number"
                         min="0"
                         placeholder="0"

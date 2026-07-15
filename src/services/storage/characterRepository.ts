@@ -1,6 +1,5 @@
 import { dbPromise } from '../../db/appDb';
 import type { Character } from '../../types';
-import type { SyncResult } from '../../features/sync/services/syncApi';
 import { createId } from '../../utils/id';
 import { addMutation } from '../../features/sync/engine/mutationQueue';
 
@@ -58,32 +57,4 @@ export async function updateCharacter(id: string, patch: Partial<Character>): Pr
     });
 
     return updated;
-}
-
-export async function getCharacter(id: string): Promise<Character | undefined> {
-    const db = await dbPromise;
-    return db.get('characters', id);
-}
-
-export async function markSynced(id: string, result: SyncResult): Promise<void> {
-    const db = await dbPromise;
-    const existing = await db.get('characters', id);
-    if (!existing) return;
-
-    if (result.status === 'synced') {
-        const updated: Character = {
-            ...existing,
-            syncStatus: 'synced',
-            serverId: result.serverId || existing.serverId,
-            serverUpdatedAt: result.serverUpdatedAt,
-        };
-        await db.put('characters', updated);
-    } else {
-        const updated: Character = {
-            ...existing,
-            syncStatus: 'sync_error',
-            syncError: result.error,
-        };
-        await db.put('characters', updated);
-    }
 }

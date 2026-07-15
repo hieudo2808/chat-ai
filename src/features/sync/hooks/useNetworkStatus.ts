@@ -49,6 +49,7 @@ export function useNetworkStatus(checkIntervalMs = 60000) {
         setLastOfflineAt(new Date().toISOString());
     };
 
+    // eslint-disable-next-line react-doctor/no-fetch-in-effect
     useEffect(() => {
         window.addEventListener('online', checkHealth);
         window.addEventListener('offline', handleOffline);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useId } from 'react';
 
 type GeneratedFieldProps = {
     label: string;
@@ -24,24 +24,28 @@ export const GeneratedField: React.FC<GeneratedFieldProps> = ({
         }
     }, [value, isStreaming]);
 
+    const inputId = useId();
+
     return (
         <div className={`char-gen-field ${isPending ? 'pending' : ''}`}>
-            <label>
+            <label htmlFor={inputId}>
                 <span>{label}</span>
                 {isStreaming && <span className="char-gen-streaming-indicator">Đang tạo... ⏳</span>}
             </label>
             
             {multiline ? (
                 <textarea
+                    id={inputId}
                     ref={textareaRef}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     disabled={disabled}
-                    placeholder={placeholder || `Đang chờ tạo ${label}...`}
+                    placeholder={placeholder}
                     className={`char-gen-textarea ${isStreaming ? 'streaming' : ''}`}
                 />
             ) : (
                 <input
+                    id={inputId}
                     type="text"
                     value={value}
                     onChange={(e) => onChange(e.target.value)}

@@ -3,6 +3,7 @@ import type { Character, Message } from '~/types';
 import { createId } from '~/utils/id';
 import { getMessagesByCharacterId, saveMessage } from '~/services/messageService';
 import { buildChatMessages, replacePlaceholders } from '~/services/promptBuilder';
+import { ChatWsApi } from '~/features/chat/services/chatWsApi';
 
 import type { Settings } from '~/types';
 
@@ -50,7 +51,7 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
         return () => {
             isMounted = false;
         };
-    }, [selectedCharacter]);
+    }, [selectedCharacter, settings.userName]);
 
     const handleSend = async (selectedCharacter: Character) => {
         const text = input.trim();
@@ -105,8 +106,20 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
             const controller = new AbortController();
             abortControllerRef.current = controller;
 
-            const { ChatWsApi } = await import('~/features/chat/services/chatWsApi');
             const wsApi = new ChatWsApi(selectedCharacter.id, 'mock-token');
+
+            const abortHandler = () => {
+                wsApi.close();
+                setCurrentMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.role === 'assistant' && msg.content === ''
+                            ? { ...msg, content: '[Đã dừng phản hồi]' }
+                            : msg,
+                    ),
+                );
+            };
+            // eslint-disable-next-line react-doctor/effect-needs-cleanup
+            controller.signal.addEventListener('abort', abortHandler);
 
             wsApi.onMessage((data) => {
                 const msgData = data as { type: string, content: string, error: string };
@@ -116,11 +129,14 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                         prev.map((msg) => (msg.id === assistantMessage!.id ? { ...msg, content: fullReply } : msg)),
                     );
                 } else if (msgData.type === 'done') {
+                    controller.signal.removeEventListener('abort', abortHandler);
                     saveMessage({ ...assistantMessage!, content: fullReply });
                     setIsStreaming(false);
                     abortControllerRef.current = null;
                     wsApi.close();
                 } else if (msgData.type === 'error') {
+                    controller.signal.removeEventListener('abort', abortHandler);
+                    setIsStreaming(false);
                     throw new Error(msgData.error);
                 }
             });
@@ -130,16 +146,6 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
 
             // Wait until done or error, handled in events.
             // But we need to handle AbortController logic if user stops:
-            controller.signal.addEventListener('abort', () => {
-                wsApi.close();
-                setCurrentMessages((prev) =>
-                    prev.map((msg) =>
-                        msg.role === 'assistant' && msg.content === ''
-                            ? { ...msg, content: '[Đã dừng phản hồi]' }
-                            : msg,
-                    ),
-                );
-            });
 
             // Note: We're not throwing here, the stream is async and handled by events.
             // Catch below is only for immediate sync errors.
@@ -183,7 +189,6 @@ export function useChat(selectedCharacter: Character | undefined, settings: Sett
                 setCurrentMessages((prev) => [...prev, errorMsg]);
                 await saveMessage(errorMsg);
             }
-        } finally {
             setIsStreaming(false);
             abortControllerRef.current = null;
         }

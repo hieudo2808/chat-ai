@@ -139,8 +139,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
             {/* Hyperparameters – 2 cột giống LLM Defaults */}
             <div className="form-row">
                 <div className="form-group">
-                    <label>Temperature</label>
+                    <label htmlFor="model-temperature">Temperature</label>
                     <input
+                        id="model-temperature"
                         type="number"
                         name="temperature"
                         min="0"
@@ -152,8 +153,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ initialValue, mode, onSubm
                     />
                 </div>
                 <div className="form-group">
-                    <label>Max Tokens</label>
+                    <label htmlFor="model-max-tokens">Max Tokens</label>
                     <input
+                        id="model-max-tokens"
                         type="number"
                         name="maxTokens"
                         min="1"
