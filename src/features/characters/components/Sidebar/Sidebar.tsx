@@ -38,21 +38,21 @@ export function Sidebar({
                     <h1>RoleChat</h1>
                 </div>
                 {onCloseMobile && (
-                    <button className="sidebar-close-button" onClick={onCloseMobile} aria-label="Đóng menu">
+                    <button type="button" className="sidebar-close-button" onClick={onCloseMobile} aria-label="Đóng menu">
                         &times;
                     </button>
                 )}
             </div>
 
             <div className="sidebar-actions">
-                <button onClick={onCreateCharacter}>+ Tạo mới</button>
-                <button onClick={onImportCharacter}>Nhập Card</button>
-                <button onClick={onGenerateAI}>✨ AI Generate</button>
+                <button type="button" onClick={onCreateCharacter}>+ Tạo mới</button>
+                <button type="button" onClick={onImportCharacter}>Nhập Card</button>
+                <button type="button" onClick={onGenerateAI}>✨ AI Generate</button>
             </div>
 
             <div className="character-list">
                 {characters.map((character) => (
-                    <button
+                    <button type="button"
                         key={character.id}
                         className={`character-item ${character.id === selectedCharacterId ? 'active' : ''}`}
                         onClick={() => onSelectCharacter(character.id)}
@@ -67,7 +67,7 @@ export function Sidebar({
             </div>
 
             <div className="sidebar-footer">
-                <button onClick={onSettingsClick}>Cài đặt</button>
+                <button type="button" onClick={onSettingsClick}>Cài đặt</button>
             </div>
             
             <div className="sidebar-auth-panel">

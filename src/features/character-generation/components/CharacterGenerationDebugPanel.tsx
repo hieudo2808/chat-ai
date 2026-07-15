@@ -63,7 +63,7 @@ export const CharacterGenerationDebugPanel: React.FC = () => {
                     />
                 </label>
 
-                <button 
+                <button type="button" 
                     onClick={handleGenerate}
                     disabled={state.streamStatus === 'streaming' || !apiKey}
                     style={{ padding: '10px', background: '#0066cc', color: 'white', border: 'none', cursor: 'pointer' }}

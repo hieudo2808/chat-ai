@@ -39,7 +39,7 @@ export const ModelManagementTab: React.FC = () => {
                 <>
                     <div className="prompt-list-header">
                         <h3>Quản lý kết nối LLM</h3>
-                        <button className="btn-add-prompt" onClick={handleAddClick}>
+                        <button type="button" className="btn-add-prompt" onClick={handleAddClick}>
                             + Thêm Model
                         </button>
                     </div>

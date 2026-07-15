@@ -94,8 +94,8 @@ export function ImportCharacterModal({ onClose, onImport }: ImportCharacterModal
             )}
 
             <div className="modal-actions">
-                <button className="secondary" onClick={onClose}>Hủy</button>
-                <button 
+                <button type="button" className="secondary" onClick={onClose}>Hủy</button>
+                <button type="button" 
                     disabled={!preview} 
                     onClick={() => preview && onImport(preview)}
                 >

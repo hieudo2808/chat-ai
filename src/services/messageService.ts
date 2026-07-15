@@ -50,9 +50,9 @@ export async function deleteMessagesByCharacterId(characterId: string): Promise<
 
     const keys = await index.getAllKeys(characterId);
 
-    for (const key of keys) {
+    await Promise.all(keys.map(async (key) => {
         await tx.store.delete(key);
-    }
+    }));
 
     await tx.done;
 }

@@ -7,7 +7,7 @@ export async function handleSyncPush(request: Request, env: Env): Promise<Respon
         const results = [];
         const now = new Date().toISOString();
 
-        for (const change of changes) {
+        await Promise.all(changes.map(async (change: any) => {
             try {
                 if (change.entity === 'character') {
                     if (change.operation === 'create' || change.operation === 'update') {
@@ -55,7 +55,7 @@ export async function handleSyncPush(request: Request, env: Env): Promise<Respon
                     error: err instanceof Error ? err.message : 'Unknown error',
                 });
             }
-        }
+        }));
 
         return new Response(JSON.stringify({ results, serverTime: now }), {
             status: 200,

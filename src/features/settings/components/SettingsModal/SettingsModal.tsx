@@ -72,7 +72,7 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
     const prompts = localSettings.prompts || [];
 
     const renderTabButton = (tabName: typeof activeTab, label: string) => (
-        <button
+        <button type="button"
             className={`settings-tab-button ${activeTab === tabName ? 'active' : ''}`}
             onClick={() => setActiveTab(tabName)}
         >
@@ -112,8 +112,8 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                                 <div className="prompt-editor-header">
                                     <h4>Chỉnh sửa Prompt: {editingPrompt.name}</h4>
                                     <div className="editor-actions">
-                                        <button className="btn-editor-cancel" onClick={handleCancelPromptEdit}>Quay lại</button>
-                                        <button className="btn-editor-save" onClick={handleSavePromptEdit}>Xác nhận</button>
+                                        <button type="button" className="btn-editor-cancel" onClick={handleCancelPromptEdit}>Quay lại</button>
+                                        <button type="button" className="btn-editor-save" onClick={handleSavePromptEdit}>Xác nhận</button>
                                     </div>
                                 </div>
                                 
@@ -161,7 +161,7 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                             <>
                                 <div className="prompt-list-header">
                                     <h3>Quản lý khối Prompt</h3>
-                                    <button className="btn-add-prompt" onClick={handleAddCustomPrompt}>
+                                    <button type="button" className="btn-add-prompt" onClick={handleAddCustomPrompt}>
                                         + Thêm Prompt
                                     </button>
                                 </div>
@@ -184,11 +184,11 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
                                                 </div>
                                             </div>
                                             <div className="prompt-actions">
-                                                <button className="btn-action" onClick={() => setEditingPrompt({ ...prompt })}>✏️</button>
+                                                <button type="button" className="btn-action" onClick={() => setEditingPrompt({ ...prompt })}>✏️</button>
                                                 {prompt.systemPrompt ? (
-                                                    <button className="btn-action" onClick={() => handleResetPrompt(prompt.id)}>🔄</button>
+                                                    <button type="button" className="btn-action" onClick={() => handleResetPrompt(prompt.id)}>🔄</button>
                                                 ) : (
-                                                    <button className="btn-action" onClick={() => handleDeletePrompt(prompt.id)}>🗑️</button>
+                                                    <button type="button" className="btn-action" onClick={() => handleDeletePrompt(prompt.id)}>🗑️</button>
                                                 )}
                                             </div>
                                         </div>
@@ -205,10 +205,10 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
             </div>
 
             <div className="modal-actions">
-                <button className="secondary" onClick={onClose} disabled={!!editingPrompt}>
+                <button type="button" className="secondary" onClick={onClose} disabled={!!editingPrompt}>
                     Hủy
                 </button>
-                <button onClick={() => onSave(localSettings)} disabled={!!editingPrompt}>
+                <button type="button" onClick={() => onSave(localSettings)} disabled={!!editingPrompt}>
                     Lưu cài đặt
                 </button>
             </div>

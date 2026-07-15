@@ -20,7 +20,7 @@ export function AuthStatus() {
     return (
         <div className="sidebar-auth-user">
             <span className="sidebar-auth-user-name">{displayName}</span>
-            <button 
+            <button type="button" 
                 onClick={logout}
                 className="sidebar-auth-logout-btn"
             >

@@ -42,7 +42,7 @@ export const GeneratedArrayField: React.FC<GeneratedArrayFieldProps> = ({
                         <span key={idx} className="char-gen-tag">
                             {tag}
                             {!disabled && (
-                                <button
+                                <button type="button"
                                     onClick={() => handleRemove(idx)}
                                     className="char-gen-tag-remove-btn"
                                 >
@@ -87,14 +87,14 @@ export const GeneratedArrayField: React.FC<GeneratedArrayFieldProps> = ({
                                 className={`char-gen-textarea char-gen-list-item-textarea ${isStreaming ? 'streaming' : ''}`}
                             />
                             {!disabled && (
-                                <button onClick={() => handleRemove(idx)} className="char-gen-list-remove-btn">
+                                <button type="button" onClick={() => handleRemove(idx)} className="char-gen-list-remove-btn">
                                     Xóa
                                 </button>
                             )}
                         </div>
                     ))}
                     {!disabled && status !== 'streaming' && (
-                        <button onClick={() => onChange([...values, ''])} className="char-gen-list-add-btn">
+                        <button type="button" onClick={() => onChange([...values, ''])} className="char-gen-list-add-btn">
                             + Thêm item
                         </button>
                     )}

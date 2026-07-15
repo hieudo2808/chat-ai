@@ -41,11 +41,11 @@ export function ChatInput({ input, isStreaming, onChange, onSend, onStop, disabl
             />
 
             {isStreaming ? (
-                <button className="stop-button" onClick={onStop} disabled={disabled && !isStreaming}>
+                <button type="button" className="stop-button" onClick={onStop} disabled={disabled && !isStreaming}>
                     ⏹
                 </button>
             ) : (
-                <button onClick={() => { if (input.trim() && !disabled) onSend() }} disabled={disabled || !input.trim()}>
+                <button type="button" onClick={() => { if (input.trim() && !disabled) onSend() }} disabled={disabled || !input.trim()}>
                     ➤
                 </button>
             )}

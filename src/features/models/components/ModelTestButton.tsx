@@ -24,7 +24,7 @@ export const ModelTestButton: React.FC<ModelTestButtonProps> = ({ model }) => {
     };
 
     return (
-        <button 
+        <button type="button" 
             onClick={handleTest}
             disabled={status === 'testing'}
             className={`btn-test-connection ${

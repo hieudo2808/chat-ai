@@ -5,7 +5,7 @@ export async function runMigration(db: import('idb').IDBPDatabase<import('./appD
     
     // Migrate characters
     const characters = await db.getAll('characters');
-    for (const char of characters) {
+    await Promise.all(characters.map(async (char) => {
         if (char.syncStatus === 'pending_create' || char.syncStatus === 'pending_update') {
             const operation = char.syncStatus === 'pending_create' ? 'create' : 'update';
             await db.put('offline_mutations', {
@@ -25,11 +25,11 @@ export async function runMigration(db: import('idb').IDBPDatabase<import('./appD
             // Keep syncStatus as is to indicate it is pending sync in the UI
             // However, the actual source of truth for pending is now offline_mutations.
         }
-    }
+    }));
 
     // Migrate models
     const models = await db.getAll('models');
-    for (const model of models) {
+    await Promise.all(models.map(async (model) => {
         if (model.syncStatus === 'pending_create' || model.syncStatus === 'pending_update') {
             const operation = model.syncStatus === 'pending_create' ? 'create' : 'update';
             await db.put('offline_mutations', {
@@ -46,5 +46,5 @@ export async function runMigration(db: import('idb').IDBPDatabase<import('./appD
                 idempotencyKey: createId()
             });
         }
-    }
+    }));
 }

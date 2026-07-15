@@ -118,10 +118,10 @@ export function CharacterEditorModal({ character, onClose, onSave }: CharacterEd
             </div>
 
             <div className="modal-actions">
-                <button className="secondary" onClick={onClose}>
+                <button type="button" className="secondary" onClick={onClose}>
                     Hủy
                 </button>
-                <button
+                <button type="button"
                     onClick={() => {
                         if (!form.name?.trim()) {
                             alert('Vui lòng nhập tên nhân vật.');

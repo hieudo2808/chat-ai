@@ -20,7 +20,7 @@ export const CharacterIdeaInput: React.FC<CharacterIdeaInputProps> = ({ value, d
                 disabled={disabled}
                 className="char-gen-textarea-idea"
             />
-            <button
+            <button type="button"
                 onClick={onGenerate}
                 disabled={disabled || value.trim().length === 0}
                 className="char-gen-btn-generate"

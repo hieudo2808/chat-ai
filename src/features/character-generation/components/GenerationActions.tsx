@@ -20,7 +20,7 @@ export const GenerationActions: React.FC<GenerationActionsProps> = ({
     return (
         <div className="char-gen-actions">
             {canCancel && (
-                <button
+                <button type="button"
                     onClick={onCancel}
                     className="char-gen-btn-cancel"
                 >
@@ -30,13 +30,13 @@ export const GenerationActions: React.FC<GenerationActionsProps> = ({
 
             {(status === 'done' || status === 'partial_error' || status === 'cancelled') && (
                 <>
-                    <button
+                    <button type="button"
                         onClick={onDiscard}
                         className="char-gen-btn-discard"
                     >
                         Hủy bỏ (Discard)
                     </button>
-                    <button
+                    <button type="button"
                         onClick={onSave}
                         disabled={!canSave}
                         className="char-gen-btn-save"

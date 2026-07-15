@@ -65,7 +65,7 @@ export const dbPromise = openDB<RoleChatDB>('rolechat_db', 3, {
             const characters = await tx.objectStore('characters').getAll();
             const now = new Date().toISOString();
             
-            for (const char of characters) {
+            await Promise.all(characters.map(async (char) => {
                 if (char.syncStatus === 'pending_create' || char.syncStatus === 'pending_update') {
                     const operation = char.syncStatus === 'pending_create' ? 'create' : 'update';
                     await tx.objectStore('offline_mutations').put({
@@ -82,10 +82,10 @@ export const dbPromise = openDB<RoleChatDB>('rolechat_db', 3, {
                         idempotencyKey: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)
                     });
                 }
-            }
+            }));
 
             const models = await tx.objectStore('models').getAll();
-            for (const model of models) {
+            await Promise.all(models.map(async (model) => {
                 if (model.syncStatus === 'pending_create' || model.syncStatus === 'pending_update') {
                     const operation = model.syncStatus === 'pending_create' ? 'create' : 'update';
                     await tx.objectStore('offline_mutations').put({
@@ -102,7 +102,7 @@ export const dbPromise = openDB<RoleChatDB>('rolechat_db', 3, {
                         idempotencyKey: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)
                     });
                 }
-            }
+            }));
         }
     },
 });

@@ -43,7 +43,7 @@ export function ChatPanel({
             <header className="chat-header">
                 <div className="chat-character-info">
                     {onMenuClick && (
-                        <button className="menu-button" onClick={onMenuClick} aria-label="Mở danh mục">
+                        <button type="button" className="menu-button" onClick={onMenuClick} aria-label="Mở danh mục">
                             ☰
                         </button>
                     )}
@@ -54,8 +54,8 @@ export function ChatPanel({
                 </div>
 
                 <div className="chat-header-actions gap-2 flex items-center">
-                    <button onClick={onEditCharacter}>Chỉnh sửa</button>
-                    <button className="danger" onClick={onDeleteCharacter}>
+                    <button type="button" onClick={onEditCharacter}>Chỉnh sửa</button>
+                    <button type="button" className="danger" onClick={onDeleteCharacter}>
                         Xóa
                     </button>
                 </div>

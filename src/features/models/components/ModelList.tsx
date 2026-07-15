@@ -35,15 +35,15 @@ export const ModelList: React.FC<ModelListProps> = ({ models, selectedModelId, o
                         
                         <div className="model-profile-actions">
                             {!model.isDefault && (
-                                <button onClick={() => onSetDefault(model.id)} className="btn-set-default">
+                                <button type="button" onClick={() => onSetDefault(model.id)} className="btn-set-default">
                                     Set Default
                                 </button>
                             )}
                             <ModelTestButton model={model} />
-                            <button onClick={() => onEdit(model)} className="btn-edit-model">
+                            <button type="button" onClick={() => onEdit(model)} className="btn-edit-model">
                                 Edit
                                 </button>
-                            <button onClick={() => onDelete(model.id)} disabled={model.isDefault && models.length > 1} className="btn-delete-model">
+                            <button type="button" onClick={() => onDelete(model.id)} disabled={model.isDefault && models.length > 1} className="btn-delete-model">
                                 Delete
                             </button>
                         </div>

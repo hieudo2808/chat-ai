@@ -7,9 +7,9 @@ export async function processSyncQueue(token: string): Promise<void> {
     const mutations = await getPendingMutations();
     if (mutations.length === 0) return;
 
-    for (const m of mutations) {
+    await Promise.all(mutations.map(async (m) => {
         await markMutationStatus(m.id, 'processing');
-    }
+    }));
 
     try {
         const changes: SyncChange[] = mutations.map(m => ({
@@ -23,30 +23,30 @@ export async function processSyncQueue(token: string): Promise<void> {
         const response = await pushSync(changes, token);
 
         if (response && response.results) {
-            for (const result of response.results) {
-                const mutation = mutations.find((m: OfflineMutation) => m.localId === result.localId);
-                if (!mutation) continue;
-
-                if (result.status === 'synced') {
-                    await markMutationStatus(mutation.id, 'synced', { serverId: result.serverId });
-                } else if (result.status === 'conflict') {
-                    await markMutationStatus(mutation.id, 'conflict');
-                } else {
-                    await markMutationStatus(mutation.id, 'failed', { 
-                        retryCount: mutation.retryCount + 1,
-                        lastError: result.error || 'Unknown error'
-                    });
+            await Promise.all(mutations.map(async (mutation) => {
+                const result = response.results.find((r: any) => r.localId === mutation.localId);
+                if (result) {
+                    if (result.status === 'synced') {
+                        await markMutationStatus(mutation.id, 'synced', { serverId: result.serverId });
+                    } else if (result.status === 'conflict') {
+                        await markMutationStatus(mutation.id, 'conflict');
+                    } else {
+                        await markMutationStatus(mutation.id, 'failed', { 
+                            retryCount: mutation.retryCount + 1,
+                            lastError: result.error || 'Unknown error'
+                        });
+                    }
                 }
-            }
+            }));
         }
     } catch (error: unknown) {
         // Network error or backend down
-        for (const m of mutations) {
+        await Promise.all(mutations.map(async (m) => {
             await markMutationStatus(m.id, 'failed', {
                 retryCount: m.retryCount + 1,
                 lastError: (error as Error).message || 'Network error'
             });
-        }
+        }));
     }
 }
 

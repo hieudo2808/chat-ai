@@ -54,7 +54,7 @@ export async function setDefaultModel(id: string): Promise<void> {
     const db = await dbPromise;
     const models = await db.getAll('models');
     
-    for (const model of models) {
+    await Promise.all(models.map(async (model) => {
         if (model.id === id && !model.isDefault) {
             model.isDefault = true;
             model.updatedAt = Date.now();
@@ -64,5 +64,5 @@ export async function setDefaultModel(id: string): Promise<void> {
             model.updatedAt = Date.now();
             await db.put('models', model);
         }
-    }
+    }));
 }

@@ -4,7 +4,7 @@ export function LoginAsGuestButton() {
     const { loginGuest, isLoading } = useAuthStore();
 
     return (
-        <button 
+        <button type="button" 
             onClick={loginGuest} 
             disabled={isLoading}
         >
